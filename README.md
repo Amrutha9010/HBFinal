@@ -157,16 +157,19 @@ CLOUDINARY_API_SECRET=your_secret
 Student registers & logs in
 Applies for room → Warden approves
 Room gets allocated
+
 Student can:
 Apply leave
 Raise complaints
 View fees & pay online
 Warden manages all operations via dashboard
+
 💡 Problems Solved
 ❌ Manual leave approval → ✅ Digital approval
 ❌ No complaint tracking → ✅ Real-time status updates
 ❌ Manual fee tracking → ✅ Online payment + tracking
 ❌ Lack of transparency → ✅ Centralized dashboard
+
 🎯 Future Enhancements
 SMS/Email reminders for fees
 AI-based room allocation
@@ -178,18 +181,3 @@ Advanced analytics dashboard
 Amrutha Chappa
 B.Tech – AI & ML
 SRKR Engineering College
-
-⭐ Support
-
-If you like this project, give it a ⭐ on GitHub!
-
-
----
-
-## 🔥 What I fixed
-- ✅ Code blocks formatting (very important in GitHub)
-- ✅ Headings alignment
-- ✅ Clean spacing
-- ✅ Professional structure
-
----
