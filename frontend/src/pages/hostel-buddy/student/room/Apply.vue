@@ -171,23 +171,31 @@ export default {
         collegeId: null,
         termsAgreed: false,
       },
+      isSubmitting: false
     };
   },
   methods: {
     goBack() {
       this.$router.push({ name: 'StudentDashboard' });
     },
+
     handleFileUpload(field, event) {
       this.form[field] = event.target.files[0];
     },
+
     async submitApplication() {
       if (!this.form.termsAgreed) {
         alert('Please agree to the hostel rules and regulations.');
         return;
       }
 
+      // ✅ prevent multiple clicks
+      if (this.isSubmitting) return;
+      this.isSubmitting = true;
+
       try {
         const formData = new FormData();
+
         formData.append('fullName', this.form.fullName);
         formData.append('rollNumber', this.form.rollNumber);
         formData.append('branchYear', this.form.branchYear);
@@ -198,27 +206,46 @@ export default {
         formData.append('medicalInfo', this.form.medicalInfo);
         formData.append('sharingType', this.form.sharingType);
         formData.append('acType', this.form.acType);
-        formData.append('studentPhoto', this.form.studentPhoto);
-        formData.append('aadhaar', this.form.aadhaar);
-        formData.append('collegeId', this.form.collegeId);
 
-        await axios.post('http://localhost:5000/api/v1/room-application', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        if (this.form.studentPhoto)
+          formData.append('studentPhoto', this.form.studentPhoto);
 
+        if (this.form.aadhaar)
+          formData.append('aadhaar', this.form.aadhaar);
+
+        if (this.form.collegeId)
+          formData.append('collegeId', this.form.collegeId);
+
+        const res = await axios.post(
+          'http://localhost:5000/api/v1/room-application',
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          }
+        );
+
+        console.log("RESPONSE:", res.data);
+
+        // ✅ ALWAYS SUCCESS (since backend 201)
         alert('Application submitted successfully!');
         this.$router.push({ name: 'StudentDashboard' });
+
       } catch (error) {
-        console.error('Error submitting application:', error);
-        alert('Failed to submit application. Please check your inputs and try again.');
+        console.error('ERROR:', error.response || error);
+
+        // ✅ show backend message (duplicate case)
+        if (error.response) {
+          alert(error.response.data.message || 'Something went wrong');
+        } else {
+          alert('Network error. Please try again.');
+        }
+      } finally {
+        this.isSubmitting = false;
       }
     },
   },
 };
 </script>
-
 
 
 

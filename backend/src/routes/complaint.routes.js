@@ -1,4 +1,4 @@
- import express from 'express';
+import express from 'express';
 import Complaint from '../models/Complaint.model.js';
 import upload from '../middleware/uploadImage.js';
 import verifyToken from '../middleware/verifyToken.js'; // ✅ Token validation

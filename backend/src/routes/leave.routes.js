@@ -1,4 +1,5 @@
- import express from 'express';
+import express from 'express';
+import verifyToken from "../middleware/verifyToken.js";
 import {
   applyLeave,
   getLeaveHistory,
@@ -6,23 +7,23 @@ import {
   updateLeaveStatus,
   getLeaveStats,
   deleteLeave,
+  getStudentLeaveStats
 } from '../controllers/leave.controller.js';
-import { getStudentLeaveStats } from "../controllers/leave.controller.js";
 
-import { protect, restrictTo } from '../middleware/auth.js';
- 
- const router = express.Router();
+const router = express.Router();
 
-// Student routes
-router.post('/apply', protect, restrictTo('student'), applyLeave);
-router.get('/history', protect, restrictTo('student'), getLeaveHistory);
-router.delete('/:id', protect,restrictTo('student'), deleteLeave);
-router.get("/student-stats", protect, getStudentLeaveStats);
+// ✅ STUDENT ROUTES
+router.post('/apply', verifyToken, applyLeave);
+router.get('/history', verifyToken, getLeaveHistory);
+router.delete('/:id', verifyToken, deleteLeave);
 
-// Warden routes
-router.get('/pending', protect, restrictTo('warden'), getPendingLeaves);
-router.put('/:id/status', protect, restrictTo('warden'), updateLeaveStatus);
-router.get('/stats', protect, restrictTo('warden'), getLeaveStats);
- 
+// ✅ DASHBOARD ROUTES (IMPORTANT)
+router.get("/", verifyToken, getLeaveHistory);
+router.get("/student-stats", verifyToken, getStudentLeaveStats);
+
+// ✅ WARDEN ROUTES
+router.get('/pending', verifyToken, getPendingLeaves);
+router.put('/:id/status', verifyToken, updateLeaveStatus);
+router.get('/stats', verifyToken, getLeaveStats);
 
 export default router;

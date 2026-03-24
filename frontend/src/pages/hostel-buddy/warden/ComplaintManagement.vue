@@ -18,21 +18,23 @@
           In Progress ({{ inProgressCount }})
         </button>
         <button @click="setFilter('staff-assigned')" :class="{ active: currentFilter === 'staff-assigned' }">
-           Staff Assigned ({{ resolvedCount }})
+          Staff Assigned ({{ staffAssignedCount }})
         </button>
-          <button @click="setFilter('rejected')" :class="{ active: currentFilter === 'rejected' }">
-           Rejected ({{ resolvedCount }})
+        <button @click="setFilter('rejected')" :class="{ active: currentFilter === 'rejected' }">
+          Rejected ({{ rejectedCount }})
+        </button>
+        <button @click="setFilter('resolved')" :class="{ active: currentFilter === 'resolved' }">
+          Resolved ({{ resolvedCount }})
         </button>
       </div>
 
       <div class="search-box">
         <input
-  v-model="searchQuery"
-  type="text"
-  placeholder="Search complaints..."
-  class="search-input"
-/>
-
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search complaints..."
+          class="search-input"
+        />
       </div>
     </div>
 
@@ -41,10 +43,10 @@
         class="complaint-card"
         v-for="complaint in sortedAndFilteredComplaints"
         :key="complaint._id"
-        :class="complaint.status.toLowerCase()">
+        :class="getStatusClass(complaint.status)">
         <div class="card-header">
           <span class="complaint-id">{{ complaint._id.slice(-6).toUpperCase() }}</span>
-          <span :class="['status-badge', complaint.status.toLowerCase()]">
+          <span :class="['status-badge', getStatusClass(complaint.status)]">
             {{ formatStatus(complaint.status) }}
           </span>
         </div>
@@ -53,12 +55,12 @@
           <div class="detail-row">
             <span class="detail-label">Submitted By:</span>
             <span>
-              {{ complaint.submittedBy?.fullName || complaint.submittedBy || 'N/A' }}
+              {{ complaint.submittedBy?.fullName || complaint.studentName || complaint.submittedBy || 'N/A' }}
             </span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Room:</span>
-            <span>{{ complaint.submittedBy?.roomNumber || 'N/A' }}</span>
+            <span>{{ complaint.submittedBy?.roomNumber || complaint.currentRoom || 'N/A' }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Category:</span>
@@ -66,7 +68,7 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">Date:</span>
-            <span>{{ formatDate(complaint.date) }}</span>
+            <span>{{ formatDate(complaint.createdAt || complaint.date) }}</span>
           </div>
           <div class="detail-row description">
             <span class="detail-label">Description:</span>
@@ -76,11 +78,14 @@
             <span class="detail-label">Image:</span>
             <img :src="complaint.imageUrl" alt="Complaint Image" style="max-width: 100px; border-radius: 6px;" />
           </div>
+          <div class="detail-row" v-if="complaint.assignedStaff">
+            <span class="detail-label">Assigned Staff:</span>
+            <span>{{ getStaffName(complaint.assignedStaff) }}</span>
+          </div>
         </div>
 
         <div class="card-footer">
           <button @click="showDetails(complaint)" class="details-btn">Update Status</button>
-          
         </div>
       </div>
 
@@ -93,7 +98,7 @@
     <div v-if="selectedComplaint" class="modal-overlay" @click.self="closeModal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Complaint Details</h2>
+          <h2>Update Complaint Status</h2>
           <button @click="closeModal" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">
@@ -103,51 +108,61 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">Student:</span>
-            <span>{{ selectedComplaint.submittedBy?.fullName || selectedComplaint.submittedBy || 'N/A' }}</span>
+            <span>{{ selectedComplaint.submittedBy?.fullName || selectedComplaint.studentName || 'N/A' }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Room:</span>
-            <span>{{ selectedComplaint.submittedBy?.roomNumber || 'N/A' }}</span>
+            <span>{{ selectedComplaint.submittedBy?.roomNumber || selectedComplaint.currentRoom || 'N/A' }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Category:</span>
             <span>{{ selectedComplaint.category }}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Date Reported:</span>
-            <span>{{ formatDate(selectedComplaint.date) }}</span>
+            <span class="detail-label">Current Status:</span>
+            <span :class="['status-badge', getStatusClass(selectedComplaint.status)]">
+              {{ formatStatus(selectedComplaint.status) }}
+            </span>
           </div>
           <div class="detail-row">
-  <label class="detail-label">Update Status:</label>
-  <select v-model="selectedStatus">
-    <option value="pending">Pending</option>
-    <option value="in-progress">In Progress</option>
-    <option value="staff-assigned">Staff Assigned</option>
-    <option value="rejected">Rejected</option>
-  </select>
-</div>
+            <label class="detail-label">Update Status:</label>
+            <select v-model="selectedStatus" class="status-select">
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="staff-assigned">Staff Assigned</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div class="detail-row" v-if="selectedStatus === 'staff-assigned'">
+            <label class="detail-label">Assign Staff:</label>
+            <select v-model="selectedStaffId" class="staff-select">
+              <option value="">Select Staff Member</option>
+              <option v-for="staff in staffMembers" :key="staff.id" :value="staff.id">
+                {{ staff.name }} ({{ staff.expertise }})
+              </option>
+            </select>
+          </div>
 
           <div class="detail-row">
-            <span class="detail-label">Assigned Staff:</span>
-            <span v-if="selectedComplaint.assignedStaff">
-              {{ getStaffName(selectedComplaint.assignedStaff) }}
-            </span>
-            <span v-else>Unassigned</span>
+            <label class="detail-label">Remarks/Warden Comment:</label>
+            <textarea 
+              v-model="wardenRemark" 
+              rows="3" 
+              class="remark-input"
+              placeholder="Add any remarks or comments..."
+            ></textarea>
           </div>
+
           <div class="detail-row">
             <span class="detail-label">Description:</span>
             <p class="complaint-description">{{ selectedComplaint.description || 'No description provided' }}</p>
           </div>
-          <div class="detail-row" v-if="selectedComplaint.resolutionNotes">
-            <span class="detail-label">Resolution Notes:</span>
-            <p class="resolution-notes">{{ selectedComplaint.resolutionNotes }}</p>
-          </div>
         </div>
         <div class="modal-footer">
-          <button @click="updateComplaintStatus" class="modal-btn">Update</button>
-          <button @click="closeModal" class="modal-btn">Close</button>
-          
-
+          <button @click="updateComplaintStatus" class="modal-btn primary">Update Status</button>
+          <button @click="closeModal" class="modal-btn">Cancel</button>
         </div>
       </div>
     </div>
@@ -173,6 +188,8 @@ export default {
       sortDirection: 'desc',
       selectedComplaint: null,
       selectedStatus: '',
+      selectedStaffId: '',
+      wardenRemark: '',
       complaints: [],
       staffMembers: [
         { id: 'ST001', name: 'Rajesh Kumar', expertise: 'Electrical' },
@@ -185,37 +202,51 @@ export default {
   },
   computed: {
     pendingCount() {
-      return this.complaints.filter(c => c.status === 'pending').length;
+      return this.complaints.filter(c => this.normalizeStatus(c.status) === 'pending').length;
     },
     inProgressCount() {
-      return this.complaints.filter(c => c.status === 'in-progress').length;
+      return this.complaints.filter(c => this.normalizeStatus(c.status) === 'in-progress').length;
+    },
+    staffAssignedCount() {
+      return this.complaints.filter(c => this.normalizeStatus(c.status) === 'staff-assigned').length;
     },
     resolvedCount() {
-      return this.complaints.filter(c => c.status === 'staff-assigned').length;
+      return this.complaints.filter(c => this.normalizeStatus(c.status) === 'resolved').length;
+    },
+    rejectedCount() {
+      return this.complaints.filter(c => this.normalizeStatus(c.status) === 'rejected').length;
     },
     filteredComplaints() {
       let filtered = this.complaints;
+      
       if (this.currentFilter !== 'all') {
-        filtered = filtered.filter(complaint => complaint.status === this.currentFilter);
+        filtered = filtered.filter(complaint => 
+          this.normalizeStatus(complaint.status) === this.currentFilter
+        );
       }
+      
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase();
-       filtered = filtered.filter(complaint =>
-      (complaint.submittedBy?.fullName?.toLowerCase?.() || complaint.submittedBy?.toLowerCase?.() || '').includes(query) ||
-      (complaint._id?.toLowerCase?.() || '').includes(query) ||
-       (complaint.category?.toLowerCase?.() || '').includes(query) ||
-       (complaint.description?.toLowerCase?.() || '').includes(query) ||
-       (complaint.assignedStaff && this.getStaffName(complaint.assignedStaff).toLowerCase().includes(query))
-      );
-
+        filtered = filtered.filter(complaint => {
+          const studentName = complaint.submittedBy?.fullName || complaint.studentName || '';
+          const category = complaint.category || '';
+          const description = complaint.description || '';
+          const assignedStaff = complaint.assignedStaff ? this.getStaffName(complaint.assignedStaff) : '';
+          
+          return studentName.toLowerCase().includes(query) ||
+            complaint._id.toLowerCase().includes(query) ||
+            category.toLowerCase().includes(query) ||
+            description.toLowerCase().includes(query) ||
+            assignedStaff.toLowerCase().includes(query);
+        });
       }
       return filtered;
     },
     sortedAndFilteredComplaints() {
       return [...this.filteredComplaints].sort((a, b) => {
         let modifier = this.sortDirection === 'desc' ? -1 : 1;
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
+        const dateA = new Date(a.createdAt || a.date);
+        const dateB = new Date(b.createdAt || b.date);
         return (dateA - dateB) * modifier;
       });
     }
@@ -223,82 +254,157 @@ export default {
   watch: {
     selectedComplaint(newVal) {
       if (newVal) {
-        this.selectedStatus = newVal.status || '';
+        this.selectedStatus = newVal.status || 'pending';
+        this.selectedStaffId = newVal.assignedStaff || '';
+        this.wardenRemark = newVal.wardenRemark || newVal.wardenComment || '';
       }
     }
   },
   methods: {
+    // Normalize status for consistent comparison
+    normalizeStatus(status) {
+      if (!status) return 'pending';
+      const normalized = status.toString().toLowerCase().trim();
+      
+      // Handle different status variations
+      if (normalized === 'staff assigned' || normalized === 'staff-assigned') return 'staff-assigned';
+      if (normalized === 'in progress' || normalized === 'in-progress') return 'in-progress';
+      if (normalized === 'resolved') return 'resolved';
+      if (normalized === 'rejected') return 'rejected';
+      if (normalized === 'pending') return 'pending';
+      
+      return normalized;
+    },
+    
+    getStatusClass(status) {
+      const normalized = this.normalizeStatus(status);
+      switch(normalized) {
+        case 'pending':
+          return 'pending';
+        case 'in-progress':
+          return 'in-progress';
+        case 'staff-assigned':
+          return 'staff-assigned';
+        case 'resolved':
+          return 'resolved';
+        case 'rejected':
+          return 'rejected';
+        default:
+          return 'pending';
+      }
+    },
+    
     async fetchComplaints() {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/v1/complaints/all', {
+        const res = await axios.get('http://localhost:5000/api/v1/complaints/all', {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
-        this.complaints = res.data.data;
+        this.complaints = res.data.data || [];
+        console.log('Fetched complaints:', this.complaints);
+        
+        // Debug: Log all unique statuses
+        const uniqueStatuses = [...new Set(this.complaints.map(c => c.status))];
+        console.log('Unique statuses found:', uniqueStatuses);
+        
       } catch (err) {
         console.error('Failed to fetch complaints', err);
+        alert('Failed to fetch complaints. Please check if backend is running.');
       }
     },
+    
     setFilter(filter) {
       this.currentFilter = filter;
     },
+    
     formatDate(dateString) {
+      if (!dateString) return 'N/A';
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       });
     },
+    
     formatStatus(status) {
-      return status.replace('-', ' ');
+      if (!status) return 'Pending';
+      // Convert status to readable format
+      return status
+        .toString()
+        .replace(/-/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
     },
+    
     getStaffName(staffId) {
       const staff = this.staffMembers.find(s => s.id === staffId);
-      return staff ? `${staff.name} (${staff.expertise})` : 'Unknown';
+      return staff ? `${staff.name} (${staff.expertise})` : staffId || 'Unassigned';
     },
+    
     showDetails(complaint) {
       this.selectedComplaint = complaint;
+      this.selectedStatus = complaint.status || 'pending';
+      this.selectedStaffId = complaint.assignedStaff || '';
+      this.wardenRemark = complaint.wardenRemark || complaint.wardenComment || '';
     },
-    openModal(complaint) {
-  this.selectedComplaint = complaint;
-  this.selectedStatus = complaint.status || 'pending';
-}
-,
+    
     closeModal() {
       this.selectedComplaint = null;
       this.selectedStatus = '';
+      this.selectedStaffId = '';
+      this.wardenRemark = '';
     },
+    
     async updateComplaintStatus() {
-      if (!this.selectedComplaint || !this.selectedStatus) return;
+      if (!this.selectedComplaint || !this.selectedStatus) {
+        alert('Please select a status');
+        return;
+      }
 
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.put(`/api/v1/complaints/${this.selectedComplaint._id}/status`, 
-          { status: this.selectedStatus },
+        const updateData = {
+          status: this.selectedStatus,
+          wardenRemark: this.wardenRemark
+        };
+        
+        // If staff assigned, include the staff ID
+        if (this.selectedStatus === 'staff-assigned' && this.selectedStaffId) {
+          updateData.assignedStaff = this.selectedStaffId;
+        }
+        
+        const res = await axios.put(
+          `http://localhost:5000/api/v1/complaints/${this.selectedComplaint._id}/status`,
+          updateData,
           {
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
           }
         );
 
         // Update local state
-        this.selectedComplaint.status = this.selectedStatus;
         const index = this.complaints.findIndex(c => c._id === this.selectedComplaint._id);
         if (index !== -1) {
           this.complaints[index].status = this.selectedStatus;
+          this.complaints[index].assignedStaff = this.selectedStaffId || null;
+          this.complaints[index].wardenRemark = this.wardenRemark;
         }
 
         alert('Complaint status updated successfully!');
+        this.closeModal();
+        
+        // Refresh complaints to get latest data
+        await this.fetchComplaints();
+        
       } catch (error) {
         console.error('Error updating status:', error);
-        alert('Failed to update complaint status.');
+        alert(error.response?.data?.message || 'Failed to update complaint status.');
       }
-    },
-    handleSearch() {
-      // handled by v-model + computed
     }
   },
   mounted() {
@@ -306,8 +412,6 @@ export default {
   }
 };
 </script>
-
-
 
 <style scoped>
 .complaint-management-container {
@@ -359,12 +463,12 @@ export default {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background-color:white;
+  background-color: white;
   color: #1BBC9B;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  border:2px solid #1BBC9B;
+  border: 2px solid #1BBC9B;
   font-size: 0.95rem;
 }
 
@@ -379,15 +483,15 @@ export default {
 }
 
 .search-box {
-  position:relative;
+  position: relative;
   min-width: 250px;
   flex-grow: 1;
   max-width: 400px;
- }
+}
 
 .search-box input {
   width: 100%;
-  padding: 10px 15px 10px 35px;
+  padding: 10px 15px;
   border: 2px solid #1BBC9B;
   border-radius: 25px;
   font-size: 0.95rem;
@@ -416,6 +520,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  border-left: 4px solid #ddd;
 }
 
 .complaint-card:hover {
@@ -424,18 +529,23 @@ export default {
 }
 
 .complaint-card.pending {
-  border-left-color: #e61919;
+  border-left-color: #f4c430;
 }
 
 .complaint-card.in-progress {
-  border-left-color: #1565c0;
+  border-left-color: #3498db;
 }
 
 .complaint-card.staff-assigned {
-  border-left-color: #2e7d32;
+  border-left-color: #9b59b6;
 }
+
+.complaint-card.resolved {
+  border-left-color: #28a745;
+}
+
 .complaint-card.rejected {
-  border-left-color: #2e7d32;
+  border-left-color: #dc3545;
 }
 
 .card-header {
@@ -457,28 +567,34 @@ export default {
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: capitalize;
+  text-transform: uppercase;
 }
 
 .status-badge.pending {
-  background-color: #fff3e0;
-  color: #e65100;
+  background-color: #fff3cd;
+  color: #856404;
 }
 
 .status-badge.in-progress {
-  background-color: #e3f2fd;
-  color: #1565c0;
+  background-color: #d1ecf1;
+  color: #0c5460;
 }
 
 .status-badge.staff-assigned {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: #e7e3fc;
+  color: #5a3e9b;
+}
+
+.status-badge.resolved {
+  background-color: #d4edda;
+  color: #155724;
 }
 
 .status-badge.rejected {
- background-color: #fff3e0;
-  color: #e65100;
+  background-color: #f8d7da;
+  color: #721c24;
 }
+
 .card-body {
   padding: 15px;
   flex-grow: 1;
@@ -506,6 +622,8 @@ export default {
   color: #555;
   line-height: 1.4;
   display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -515,52 +633,10 @@ export default {
   background-color: #f5f5f5;
   border-top: 1px solid #eee;
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.action-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.staff-assignment, .status-controls {
-  flex: 1;
-  min-width: 150px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #555;
-}
-
-select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  background-color: white;
-  cursor: pointer;
-}
-
-select:focus {
-  border-color: #1BBC9B;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(27, 188, 155, 0.2);
-}
-
-select:disabled {
-  background-color: #f5f5f5;
-  cursor: not-allowed;
+  justify-content: flex-end;
 }
 
 .details-btn {
-  align-self: flex-end;
   padding: 8px 16px;
   background-color: #1BBC9B;
   color: white;
@@ -569,7 +645,6 @@ select:disabled {
   cursor: pointer;
   font-size: 0.85rem;
   transition: background-color 0.2s;
-  margin-left: auto;
 }
 
 .details-btn:hover {
@@ -641,16 +716,26 @@ select:disabled {
   padding: 20px;
 }
 
-.complaint-description, .resolution-notes {
+.status-select, .staff-select, .remark-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.remark-input {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.complaint-description {
   margin: 5px 0 0;
   padding: 10px;
   background-color: #f5f5f5;
   border-radius: 4px;
   line-height: 1.5;
-}
-
-.resolution-notes {
-  background-color: #e8f5e9;
 }
 
 .modal-footer {
@@ -679,12 +764,12 @@ select:disabled {
   color: white;
 }
 
-.modal-btn:hover {
-  background-color: #e0e0e0;
-}
-
 .modal-btn.primary:hover {
   background-color: #17a789;
+}
+
+.modal-btn:hover:not(.primary) {
+  background-color: #e0e0e0;
 }
 
 /* Responsive Styles */
@@ -703,10 +788,11 @@ select:disabled {
   
   .search-box {
     width: 100%;
+    max-width: 100%;
   }
   
-  .action-controls {
-    flex-direction: column;
+  .header-line {
+    width: 100%;
   }
 }
 
@@ -724,11 +810,12 @@ select:disabled {
     width: 95%;
   }
   
-  .modal-footer{
+  .modal-footer {
     flex-direction: column;
   }
-  .modal-btn{
-width: 100%;
+  
+  .modal-btn {
+    width: 100%;
   }
 }
 </style>

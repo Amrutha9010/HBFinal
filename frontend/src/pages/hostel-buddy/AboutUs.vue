@@ -3,7 +3,7 @@
     <Navbar />
     
     <div class="top-section">
-      <p class="breadcrumb">Hostel Buddy / About Us</p>
+      <!-- <p class="breadcrumb">Hostel Buddy / About Us</p> -->
       <h1>About <span class="highlight">Us</span></h1>
 
       <div role="tablist" class="tab-container">
@@ -86,7 +86,7 @@
           <div class="image-content">
             <img 
               loading="lazy" 
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71" 
+              src="@/pages/hostel-buddy/Hostel-Bed.jpeg" 
               alt="Hostel Buddy app interface on mobile device" 
             />
           </div>

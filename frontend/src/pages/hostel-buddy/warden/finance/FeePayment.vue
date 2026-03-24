@@ -260,7 +260,7 @@ export default {
               amount: this.payment.amount,
             };
 
-            console.log("✅ Verify Payload:", verifyPayload);
+            console.log("Verify Payload:", verifyPayload);
 
             const verifyRes = await fetch(
               "http://localhost:5000/api/v1/payment/verify-payment",
@@ -272,13 +272,13 @@ export default {
             );
 
             const verifyData = await verifyRes.json();
-            console.log("✅ Verify Response:", verifyData);
+            console.log("Verify Response:", verifyData);
 
             if (verifyData.success) {
-              alert("✅ Payment successful!");
+              alert("Payment successful!");
               this.fetchPaymentHistory();
             } else {
-              alert("❌ Payment verification failed!");
+              alert("Payment verification failed!");
             }
           },
           prefill: {
@@ -309,13 +309,17 @@ export default {
 
     downloadReceipt(payment) {
       const doc = new jsPDF();
-      doc.text("🏡 Hostel Fee Payment Receipt", 20, 20);
+
+      doc.setFont("helvetica", "normal");
+
+      doc.text("Hostel Fee Payment Receipt", 20, 20);
       doc.text(`Student: ${this.student.name}`, 20, 40);
       doc.text(`Student ID: ${this.student.studentId}`, 20, 50);
       doc.text(`Room: ${this.student.room}`, 20, 60);
       doc.text(`Amount Paid: ₹${payment.amount}`, 20, 80);
       doc.text(`Payment ID: ${payment.razorpay_payment_id}`, 20, 90);
       doc.text(`Date: ${new Date(payment.createdAt).toLocaleDateString()}`, 20, 100);
+
       doc.save(`Receipt_${payment.razorpay_payment_id}.pdf`);
     },
   },

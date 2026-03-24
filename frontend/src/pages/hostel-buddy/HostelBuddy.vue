@@ -8,7 +8,7 @@
           <h1>Smart Hostel Management System</h1>
           <p>Streamlining hostel operations for students and administrators</p><br/>
           <div class="auth-buttons">
-            <router-link to="/login" class="cta-button">Get Started -></router-link>
+            <router-link to="/login" class="cta-button">Get Started</router-link>
             <!-- <router-link to="/register" class="cta-button outline">Sign Up</router-link> -->
           </div>
         </div>
@@ -71,7 +71,6 @@
               <img src="@/assets/images/AnnouncementImg.png" alt="Announcements" />
             </div>
           </div>
-
         </div>
       </section>
       <section class="slideshow-quote">
@@ -137,7 +136,6 @@ export default {
         document.documentElement.classList.add('dark-theme');
       }
 
-      // ✅ Listen for theme toggle event from Navbar
       window.addEventListener('themeChanged', (event) => {
         isDarkTheme.value = event.detail.isDark;
       });

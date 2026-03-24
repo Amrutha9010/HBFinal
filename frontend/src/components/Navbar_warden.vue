@@ -42,7 +42,7 @@
   </div>
   <ul class="popup-actions-list">
    <li>
-    <router-link to="/announcements"  @click="closeMenu">
+    <router-link to="/announcement-form"  @click="closeMenu">
     <font-awesome-icon :icon="['fas', 'bullhorn']" /> Announcements
     </router-link>
     </li>

@@ -226,10 +226,10 @@ export default {
 
       try {
         await axios.post('/api/feedback', feedback)
-        alert('✅ Feedback submitted successfully!')
+        alert('Feedback submitted successfully!')
       } catch (err) {
         console.error('Error submitting feedback:', err)
-        alert('❌ Failed to submit feedback')
+        alert('Failed to submit feedback')
       }
     },
 

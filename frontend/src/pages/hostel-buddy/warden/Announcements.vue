@@ -95,7 +95,7 @@ export default {
     return {
       filterCategory: 'all',
       searchQuery: '',
-      announcements: [],  // ✅ Initially empty
+      announcements: [], 
       loading: false,
       userRole: localStorage.getItem('role') || 'student'
     }

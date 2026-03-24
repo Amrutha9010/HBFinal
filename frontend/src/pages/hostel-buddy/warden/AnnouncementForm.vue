@@ -3,7 +3,7 @@
   <div class="dashboard">
     <h1>Announcement Dashboard</h1>
 
-    <!-- ✅ CREATE + RIGHT SIDE -->
+    <!--CREATE + RIGHT SIDE -->
     <div class="top-section">
       
       <!-- CREATE ANNOUNCEMENT BOX -->
@@ -28,7 +28,7 @@
           </button>
         </div>
 
-        <!-- ✅ Schedule Later -->
+        <!--Schedule Later -->
         <div class="schedule-section">
           <label>Schedule for later</label>
           <div class="schedule-toggle">
@@ -51,7 +51,7 @@
         </div>
       </div>
 
-      <!-- ✅ RIGHT SIDE: If scheduled announcements exist show them, else show image -->
+      <!-- RIGHT SIDE: If scheduled announcements exist show them, else show image -->
       <div class="right-side">
         <div v-if="scheduledAnnouncements.length > 0" class="scheduled-announcements">
           <h2>⏳ Scheduled Announcements</h2>
@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <!-- ✅ PAST ANNOUNCEMENTS -->
+    <!-- PAST ANNOUNCEMENTS -->
     <div class="past-section">
       <h2>📢 Active Announcements</h2>
       <div v-if="visibleAnnouncements.length === 0">No active announcements.</div>
@@ -90,7 +90,7 @@
             <span v-if="ann.scheduleDate">⏳ Scheduled for {{ formatDate(ann.scheduleDate) }}</span>
           </div>
 
-          <!-- ✅ EDIT & DELETE OPTIONS -->
+          <!-- EDIT & DELETE OPTIONS -->
           <div class="card-actions">
             <button class="edit-btn" @click="editAnnouncement(ann)">✏ Edit</button>
             <button class="delete-btn" @click="deleteAnnouncement(ann._id)">🗑 Delete</button>
@@ -98,7 +98,7 @@
         </div>
       </div>
 
-      <!-- ✅ Show More / Show Less Button -->
+      <!-- Show More / Show Less Button -->
       <div v-if="visibleAnnouncements.length > 8" class="show-more-wrapper">
         <button @click="toggleShowAll" class="show-more-btn">
           {{ showAll ? 'Show Less' : 'Show More' }}
@@ -126,7 +126,7 @@ const editingId = ref(null)
 /* ------------------ ANNOUNCEMENTS DATA ------------------ */
 const announcements = ref([])
 
-/* ✅ Show only announcements that are due now */
+/* Show only announcements that are due now */
 const visibleAnnouncements = computed(() => {
   const now = new Date()
   return announcements.value.filter(ann => {
@@ -135,13 +135,13 @@ const visibleAnnouncements = computed(() => {
   })
 })
 
-/* ✅ Upcoming scheduled announcements only */
+/* Upcoming scheduled announcements only */
 const scheduledAnnouncements = computed(() => {
   const now = new Date()
   return announcements.value.filter(ann => ann.scheduleDate && new Date(ann.scheduleDate) > now)
 })
 
-/* ✅ Show More / Show Less logic */
+/* Show More / Show Less logic */
 const showAll = ref(false)
 const limitedAnnouncements = computed(() => {
   return showAll.value ? visibleAnnouncements.value : visibleAnnouncements.value.slice(0, 8)
@@ -156,7 +156,7 @@ const fetchAnnouncements = async () => {
     const res = await axios.get('http://localhost:5000/api/announcements')
     announcements.value = res.data
   } catch (err) {
-    console.error('❌ Failed to fetch announcements', err)
+    console.error('Failed to fetch announcements', err)
   }
 }
 
@@ -177,20 +177,20 @@ const postAnnouncement = async () => {
   try {
     if (editingId.value) {
       await axios.put(`http://localhost:5000/api/announcements/${editingId.value}`, newAnn)
-      alert('✅ Announcement updated successfully!')
+      alert('Announcement updated successfully!')
       editingId.value = null
     } else {
       await axios.post('http://localhost:5000/api/announcements', newAnn, {
         headers: { 'Content-Type': 'application/json' }
       })
-      alert('✅ Announcement posted successfully!')
+      alert('Announcement posted successfully!')
     }
 
     await fetchAnnouncements()
     resetForm()
   } catch (err) {
-    console.error('❌ Failed to post announcement', err.response?.data || err.message)
-    alert('❌ Publish announcement failed!')
+    console.error('Failed to post announcement', err.response?.data || err.message)
+    alert('Publish announcement failed!')
   }
 }
 
@@ -201,7 +201,7 @@ const deleteAnnouncement = async (id) => {
     alert('🗑 Announcement deleted')
     await fetchAnnouncements()
   } catch (err) {
-    console.error('❌ Delete failed', err)
+    console.error('Delete failed', err)
   }
 }
 
@@ -242,7 +242,7 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleString()
 }
 
-/* ✅ Auto-remove expired announcements older than 30 days */
+/* Auto-remove expired announcements older than 30 days */
 const removeOldAnnouncements = async () => {
   const THRESHOLD_DAYS = 30
   const now = new Date()
@@ -289,7 +289,7 @@ onMounted(async () => {
   background-size: cover;
   background-position: center;
   min-height: 100vh;
-  padding: 2rem; /* ✅ padding from laptop edges */
+  padding: 2rem; /* padding from laptop edges */
 }
 
 h1 {
@@ -304,7 +304,7 @@ h2 {
   margin-bottom: 1rem;
 }
 
-/* ✅ TOP SECTION: CREATE + RIGHT SIDE */
+/* TOP SECTION: CREATE + RIGHT SIDE */
 .top-section {
   display: grid;
   grid-template-columns: 1fr 1fr;

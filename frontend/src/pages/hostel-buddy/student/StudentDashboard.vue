@@ -91,9 +91,9 @@
         <div class="metric-card">
           <div class="metric-content">
             <h3>Room No</h3>
-            <p class="metric-value">B-205</p>
+            <p class="metric-value">{{ roomNo || 'B-201' }}</p>
             <p class="metric-change">
-              <i class="fas fa-bed"></i> Shared (2 students)
+              <i class="fas fa-bed"></i> {{ sharingType || 'Not Assigned' }}
             </p>
           </div>
           <div class="metric-icon"><i class="fas fa-home"></i></div>
@@ -101,29 +101,29 @@
         <div class="metric-card">
           <div class="metric-content">
             <h3>Fee Status</h3>
-            <p class="metric-value">Paid</p>
+            <p class="metric-value">{{ feeStatus}}</p>
             <p class="metric-change">
-              <i class="fas fa-calendar-check"></i> Next due: 10 Aug
+              <i class="fas fa-calendar-check"></i>Next due: {{ nextDue || 'N/A' }}
             </p>
           </div>
           <div class="metric-icon"><i class="fas fa-rupee-sign"></i></div>
         </div>
         <div class="metric-card">
           <div class="metric-content">
-            <h3>Meals This Week</h3>
-            <p class="metric-value">21/21</p>
+            <h3>My Complaints</h3>
+            <p class="metric-value">{{ complaintCount }}</p>
             <p class="metric-change">
-              <i class="fas fa-utensils"></i> 100% attendance
+              <i class="fas fa-tools"></i> {{ resolvedComplaints }} resolved
             </p>
           </div>
-          <div class="metric-icon"><i class="fas fa-utensils"></i></div>
+          <div class="metric-icon"><i class="fas fa-tools"></i></div>
         </div>
         <div class="metric-card">
           <div class="metric-content">
             <h3>Pending Leaves</h3>
-            <p class="metric-value">2</p>
+            <p class="metric-value">{{ pendingLeaves }}</p>
             <p class="metric-change">
-              <i class="fas fa-clock"></i> 1 approved, 1 pending
+              <i class="fas fa-clock"></i> 
             </p>
           </div>
           <div class="metric-icon"><i class="fas fa-calendar-alt"></i></div>
@@ -255,12 +255,19 @@ export default {
   components: { Footer },
   data() {
     return {
+      complaintCount: 0,
+      resolvedComplaints: 0,
       showDropdown: false,
       showMobileMenu: false,
       studentName: '',
       showProfileDropdown: false,
       announcements: [],
       loadingNotices: true,
+      roomNo: '',
+      sharingType: '',
+      feeStatus: '',
+      nextDue: '',
+      pendingLeaves: 0,
     };
   },
   computed: {
@@ -270,7 +277,7 @@ export default {
     }
   },
   mounted() {
-    const userData = localStorage.getItem('userProfile');
+    const userData = localStorage.getItem('user');
     if (userData) {
       try {
         const user = JSON.parse(userData);
@@ -280,6 +287,10 @@ export default {
       }
     }
     this.fetchAnnouncements();
+    this.fetchRoomDetails();
+    this.fetchFeeStatus();
+    this.fetchLeaves();
+    this.fetchComplaints();
   },
 
   methods: {
@@ -299,7 +310,77 @@ export default {
       this.$router.push(route);
       this.showMobileMenu = false;
     },
+    async fetchRoomDetails() {
+  try {
+    const res = await axios.get("http://localhost:5000/api/v1/students/me");
+    const data = res.data;
 
+    this.roomNo = data.roomNo;
+    this.sharingType = data.sharingType + " Sharing";
+  } catch (err) {
+    console.error("Room fetch error", err);
+  }
+},
+async fetchComplaints() {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await axios.get(
+      "http://localhost:5000/api/v1/complaints/my",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    const complaints = res.data.data || [];
+
+    this.complaintCount = complaints.length;
+    this.resolvedComplaints = complaints.filter(
+      c => c.status.toLowerCase() === "resolved" || c.status.toLowerCase() === "resolved"
+    ).length;
+
+  } catch (err) {
+    console.error("Error fetching complaints", err);
+  }
+},
+
+async fetchFeeStatus() {
+  try {
+    const res = await axios.get("http://localhost:5000/api/v1/fees/history");
+    const payments = res.data;
+
+    if (payments.length > 0) {
+      this.feeStatus = "Paid";
+      this.nextDue = "Next Month";
+    } else {
+      this.feeStatus = "Pending";
+      this.nextDue = "Pay Soon";
+    }
+  } catch (err) {
+    console.error("Fee fetch error", err);
+  }
+},
+async fetchLeaves() {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await axios.get(
+      "http://localhost:5000/api/v1/leave/student-stats",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    this.pendingLeaves = res.data.pending;
+
+  } catch (err) {
+    console.error("Leave fetch error", err.response || err);
+  }
+},
     async fetchAnnouncements() {
       try {
         const res = await axios.get("/api/announcements");

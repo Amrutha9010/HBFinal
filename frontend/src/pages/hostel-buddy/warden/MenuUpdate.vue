@@ -91,7 +91,7 @@ export default {
           this.form
         );
 
-        alert(`✅ Menu updated for ${this.editingDay}`);
+        alert(`Menu updated for ${this.editingDay}`);
         this.weeklyMenu[this.editingDay] = { ...this.form };
 
         this.editingDay = "";

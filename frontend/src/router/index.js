@@ -37,11 +37,6 @@ import StudentManagement from '../pages/hostel-buddy/warden/StudentManagement.vu
 import FeeDetails from '../pages/hostel-buddy/student/FeeDetails.vue'
 
 
-
-
-
-
-
 // import WardenDashboard from '@/pages/hostel-buddy/warden/WardenDashboard.vue'
 
 const routes = [
@@ -217,6 +212,7 @@ const routes = [
     component: AnnouncementForm 
   }
   ,
+  
   { 
     path: '/error',
     name: 'NotFound', 

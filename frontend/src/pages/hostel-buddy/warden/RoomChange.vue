@@ -1,41 +1,50 @@
- <template>
+<template>
   <div>
     <Navbar_warden />
     <div class="approval-container">
       <h2 class="approval-title">Room Change Requests</h2>
       <div class="approval-cards">
- <div v-if="pendingRequests.length > 0">
-  <div 
-    v-for="request in pendingRequests" 
-    :key="request._id" 
-    class="request-card">
-    <div class="request-content">
-  <div class="request-details">
-    <p><strong>Student:</strong> {{ request.student.name }}</p>
-    <p><strong>Preferred Block:</strong> {{ request.preferredBlock }}</p>
-    <p><strong>Preferred Room:</strong> {{ request.preferredRoomNumber }}</p>
-    <p><strong>Reason:</strong> {{ request.reason }}</p>
+        <div v-if="requests.length > 0">
+          <div 
+            v-for="request in requests" 
+            :key="request._id" 
+            class="request-card"
+            :class="{
+              'approved': request.status === 'Approved',
+              'rejected': request.status === 'Rejected',
+              'pending': request.status === 'Pending'
+            }">
+            <div class="request-content">
+              <div class="request-details">
+                <p><strong>Student Name:</strong> {{ request.studentName }}</p>
+                <p><strong>Current Room:</strong> {{ request.currentRoom }}</p>
+                <p><strong>Preferred Block:</strong> {{ request.preferredBlock }}</p>
+                <p><strong>Preferred Room:</strong> {{ request.preferredRoomNumber }}</p>
+                <p><strong>Reason:</strong> {{ request.reason }}</p>
+                <p><strong>Applied on:</strong> {{ formatDate(request.createdAt) }}</p>
+                <p><strong>Status:</strong> 
+                  <span :class="getStatusClass(request.status)">{{ request.status }}</span>
+                </p>
+              </div>
+              <div class="button-group">
+                <template v-if="request.status === 'Pending'">
+                  <button @click="updateStatus(request._id, 'Approved')" class="approve-btn">Approve</button>
+                  <button @click="updateStatus(request._id, 'Rejected')" class="reject-btn">Reject</button>
+                </template>
+                <div v-else class="status-display">
+                  Processed
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else>
+          <p class="no-requests-message">No room change requests found.</p>
+        </div>
+      </div>
+    </div>
+    <Footer />
   </div>
-  <div class="button-group">
-    <button @click="updateStatus(request._id, 'Approved')" class="approve-btn">Approve</button>
-    <button @click="updateStatus(request._id, 'Rejected')" class="reject-btn">Reject</button>
-  </div>
-  <p v-if="successMessageMap[request._id]" class="success-message">
-  {{ successMessageMap[request._id] }}
-</p>
-
-</div>
-
-  </div>
-</div>
-<div v-else>
-  <p class="no-requests-message">No pending requests to be found.</p>
-</div>
-
-</div>
-</div>
-</div>
-  <Footer />
 </template>
 
 <script>
@@ -43,7 +52,7 @@ import Navbar_warden from '@/components/Navbar_Warden.vue';
 import axios from 'axios';
 import Footer from '@/components/Footer.vue';
 
- export default {
+export default {
   name: 'RoomChangeApproval',
   components: { 
     Navbar_warden,
@@ -51,55 +60,72 @@ import Footer from '@/components/Footer.vue';
   },
   data() {
     return {
-      requests: [],
-      successMessageMap: {} // holds messages by request ID
+      requests: []
     };
   },
   async mounted() {
-  await this.fetchRequests(); // use the reusable function
+    await this.fetchRequests();
   },
- 
-   methods: {
-  async fetchRequests() {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await axios.get('http://localhost:5000/api/v1/room-change/all', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      this.requests = res.data.data;
-    } catch (err) {
-      console.error('Error fetching requests:', err);
-    }
-  },
- async updateStatus(requestId, status) {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await axios.put(
-      `http://localhost:5000/api/v1/room-change/${requestId}/status`,
-      { status },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
+  methods: {
+    async fetchRequests() {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await axios.get('http://localhost:5000/api/v1/room-change/all', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        this.requests = res.data.data || res.data;
+        console.log('Fetched requests:', this.requests);
+      } catch (err) {
+        console.error('Error fetching requests:', err);
+        alert('Failed to fetch requests');
       }
-    );
-  alert(`You are ${status} the request`);
-  this.fetchRequests();
-  } catch (error) {
-    console.error("Status update error:", error);
-    alert("Failed to update status");
+    },
+
+    async updateStatus(requestId, status) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(
+          `http://localhost:5000/api/v1/room-change/${requestId}/status`,
+          { status },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        
+        alert(`Request ${status.toLowerCase()} successfully!`);
+        await this.fetchRequests(); // Refresh the list
+        
+      } catch (error) {
+        console.error("Status update error:", error);
+        alert(`Failed to ${status.toLowerCase()} request: ${error.response?.data?.message || error.message}`);
+      }
+    },
+
+    formatDate(date) {
+      if (!date) return 'N/A';
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    },
+
+    getStatusClass(status) {
+      switch (status?.toLowerCase()) {
+        case 'pending':
+          return 'status-pending';
+        case 'approved':
+          return 'status-approved';
+        case 'rejected':
+          return 'status-rejected';
+        default:
+          return '';
+      }
+    }
   }
-}
-
-},
-
-computed: {
-  pendingRequests() {
-    return this.requests.filter(request => request.status === 'Pending');
-  }
-}
-
 };
 </script>
 
@@ -117,7 +143,7 @@ computed: {
   border-bottom: 3px solid #1BBC9B;
   padding-bottom: 10px;
   max-width: 800px;
-  margin-left: 300px;
+  margin-left: auto;
   margin-right: auto;
 }
 
@@ -126,7 +152,6 @@ computed: {
   flex-wrap: wrap;
   gap: 2rem;
   justify-content: center;
-  margin-left: 0%;
 }
 
 .request-card {
@@ -136,15 +161,26 @@ computed: {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   width: 750px;
   transition: 0.3s ease;
-  margin-left: 0px;
-  line-height: 35px;
   margin-bottom: 10px;
+  border-left: 4px solid #f4c430;
+}
+
+.request-card.pending {
+  border-left-color: #f4c430;
+}
+
+.request-card.approved {
+  border-left-color: #28a745;
+}
+
+.request-card.rejected {
+  border-left-color: #dc3545;
 }
 
 .request-content {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; 
+  align-items: flex-start;
 }
 
 .request-details {
@@ -152,34 +188,27 @@ computed: {
   line-height: 2;
 }
 
- .button-group {
-  margin-top: 0;      /* Remove extra margin at the top */
-  padding-top: 0;     /* Remove extra padding if any */
+.request-details p {
+  margin: 8px 0;
+}
+
+.button-group {
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: center;
+  margin-left: 20px;
 }
 
-.request-card:hover {
-  transform: translateY(-5px);
-}
-
-.status {
-  font-weight: bold;
-  padding: 4px 10px;
-  border-radius: 8px;
-}
- 
 .approve-btn,
 .reject-btn {
-  flex: 1;
   padding: 0.6rem;
   border-radius: 8px;
   cursor: pointer;
-  width:120px;
-  font-size: 20px;
-  font-weight: 700;
+  width: 120px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s;
 }
 
 .approve-btn {
@@ -190,21 +219,44 @@ computed: {
 
 .reject-btn {
   background-color: white;
-  color: #cf1635;
-  border: 2px solid red;
+  color: #dc3545;
+  border: 2px solid #dc3545;
 }
 
 .approve-btn:hover {
   background-color: #1BBC9B;
-  color:white;
-  border-style: none;
-
+  color: white;
+  transform: translateY(-2px);
 }
 
 .reject-btn:hover {
-  background-color: #c0392b;
-  color:white;
-  border-style: none;
+  background-color: #dc3545;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.status-display {
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  background-color: #f8f9fa;
+  color: #666;
+}
+
+.status-pending {
+  color: #f4c430;
+  font-weight: bold;
+}
+
+.status-approved {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.status-rejected {
+  color: #dc3545;
+  font-weight: bold;
 }
 
 .no-requests-message {
@@ -213,12 +265,25 @@ computed: {
   color: #777;
   margin-top: 4rem;
   font-style: italic;
-  margin-bottom: 30px;
-}
-.success-message {
-  color: green;
-  font-weight: bold;
-  margin-top: 5px;
 }
 
+@media (max-width: 768px) {
+  .approval-container {
+    padding: 1rem;
+  }
+  
+  .request-card {
+    width: 100%;
+  }
+  
+  .request-content {
+    flex-direction: column;
+  }
+  
+  .button-group {
+    flex-direction: row;
+    margin-left: 0;
+    margin-top: 15px;
+  }
+}
 </style>

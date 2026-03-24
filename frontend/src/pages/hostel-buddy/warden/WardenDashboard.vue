@@ -1,4 +1,4 @@
- <template>
+<template>
   <div class="warden-dashboard">
     <!-- Fixed Header -->
     <header class="dashboard-header">
@@ -16,7 +16,7 @@
             <router-link to="/admin-profile" @click="showDropdown = false">
               <i class="fas fa-user"></i> My Profile
             </router-link>
-            <a href="#" @click.prevent="logout">
+            <a href="/" @click.prevent="logout">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
           </div>
@@ -37,7 +37,7 @@
           </button>
         </div>
         <div class="mobile-menu-items">
-          <div class="mobile-menu-item" @click="navigateTo('/announcements')">
+          <div class="mobile-menu-item" @click="navigateTo('/announcement-form')">
             <i class="fas fa-bullhorn"></i>
             <span>Announcements</span>
           </div>
@@ -87,7 +87,7 @@
          
           <div class="mobile-menu-item" @click="navigateTo('/rules')">
             <i class="fas fa-clipboard-list"></i>
-            <span>Edit Rules</span>
+            <span>Rules</span>
           </div>
         </div>
       </div>
@@ -112,20 +112,41 @@
       </div>
 
       <!-- Recent Activity Section -->
-      <div class="dashboard-section">
-        <h2>Recent Activity</h2>
-        <div class="activity-list">
-          <div v-for="(activity, index) in recentActivities" :key="index" class="activity-item">
-            <div class="activity-icon" :class="activity.type">
-              <i :class="activity.icon"></i>
-            </div>
-            <div class="activity-content">
-              <p>{{ activity.description }}</p>
-              <span class="activity-time">{{ activity.time }}</span>
-            </div>
-          </div>
+      <!-- 🔥 DYNAMIC ANNOUNCEMENTS -->
+<div class="dashboard-section">
+  <h2>Recent Announcements</h2>
+
+  <div v-if="loadingAnnouncements" class="activity-list">
+    <p>Loading announcements...</p>
+  </div>
+
+  <div v-else>
+    <div v-if="announcements.length === 0" class="activity-list">
+      <p>No announcements yet</p>
+    </div>
+
+    <div v-else class="activity-list">
+      <div 
+        v-for="ann in announcements.slice(0,3)" 
+        :key="ann._id" 
+        class="activity-item"
+      >
+        <div class="activity-icon announcement">
+          <i class="fas fa-bullhorn"></i>
+        </div>
+
+        <div class="activity-content">
+          <p style="font-weight: 600;">{{ ann.title }}</p>
+          <p>{{ ann.message }}</p>
+
+          <small>
+            Posted by {{ ann.createdBy }} • {{ formatTime(ann.createdAt) }}
+          </small>
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
       <!-- Quick Access Cards - All menu items as cards -->
       <div class="dashboard-section">
@@ -161,6 +182,9 @@ export default {
       showMobileMenu: false,
       wardenName: '',
       showProfileDropdown: false,
+      announcements: [],
+loadingAnnouncements: true,
+
       metricList: [
         {
           title: 'Total Students',
@@ -290,7 +314,7 @@ export default {
        
        
         {
-          title: 'Edit Rules',
+          title: 'Rules',
           icon: 'fas fa-clipboard-list',
           description: 'Update hostel rules and policies',
           route: '/rules',
@@ -309,6 +333,11 @@ export default {
         console.error("Invalid user data in localStorage");
       }
     };
+
+    this.fetchTotalStudents();
+    this.fetchVacantRooms();
+    this.fetchFeeDefaulters();
+    this.fetchAnnouncements();
     // Fetch pending complaints count
   fetch('http://localhost:5000/api/v1/complaints/pending-count')
     .then(response => response.json())
@@ -323,6 +352,61 @@ export default {
     });
   },
   methods: {
+    async fetchAnnouncements() {
+      try {
+        const res = await fetch("http://localhost:5000/api/announcements");
+        const data = await res.json();
+        this.announcements = data || [];
+      } catch (err) {
+        console.error("Error fetching announcements:", err);
+      } finally {
+        this.loadingAnnouncements = false;
+      }
+    },
+    async fetchTotalStudents() {
+  try {
+    const res = await fetch("http://localhost:5000/api/v1/students/count");
+    const data = await res.json();
+
+    const card = this.metricList.find(m => m.title === "Total Students");
+    if (card) card.value = data.count;
+  } catch (err) {
+    console.error("Error fetching students count", err);
+  }
+},
+
+async fetchVacantRooms() {
+  try {
+    const res = await fetch("http://localhost:5000/api/v1/rooms/vacant-count");
+    const data = await res.json();
+
+    const card = this.metricList.find(m => m.title === "Vacant Rooms");
+    if (card) card.value = data.count;
+  } catch (err) {
+    console.error("Error fetching vacant rooms", err);
+  }
+},
+
+async fetchFeeDefaulters() {
+  try {
+    const res = await fetch("http://localhost:5000/api/v1/fees/defaulters-count");
+    const data = await res.json();
+
+    const card = this.metricList.find(m => m.title === "Fee Defaulters");
+    if (card) card.value = data.count;
+  } catch (err) {
+    console.error("Error fetching defaulters", err);
+  }
+},
+
+    formatTime(dateStr) {
+      const date = new Date(dateStr);
+      const diff = Math.floor((new Date() - date) / 60000);
+
+      if (diff < 60) return `${diff} min ago`;
+      if (diff < 1440) return `${Math.floor(diff/60)} hours ago`;
+      return `${Math.floor(diff/1440)} days ago`;
+    },
     toggleProfileDropdown() {
       this.showDropdown = !this.showDropdown
       if (this.showDropdown) {
@@ -338,7 +422,7 @@ export default {
     logout() {
       console.log("Logging out...")
       this.showDropdown = false
-      this.$router.push('/login')
+      this.$router.push('/')
     },
     navigateTo(route) {
       this.$router.push(route)

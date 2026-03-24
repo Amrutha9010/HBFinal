@@ -6,17 +6,29 @@
     <div class="cards-wrapper">
       <!-- Left Card - Request Form -->
       <div class="form-card">
-        <!-- <div class="current-room">
-          <h3>Your Current Room</h3>
-          <div class="room-info">
-            <span><strong>Room :</strong> {{ currentRoom.room }}</span>
-            <span><strong>Block :</strong> {{ currentRoom.block }}</span>
-          </div>
-        </div> -->
-
         <form @submit.prevent="submitRequest" class="request-form">
           <div class="form-group">
-            <label for="preferred-block">Preferred Block</label>
+            <label for="student-name">Full Name *</label>
+            <input 
+              type="text" 
+              id="student-name" 
+              v-model="formData.studentName" 
+              placeholder="Enter your full name" 
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="current-room">Current Room Number *</label>
+            <input 
+              type="text" 
+              id="current-room" 
+              v-model="formData.currentRoom" 
+              placeholder="e.g. A-101 or 201" 
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="preferred-block">Preferred Block *</label>
             <select id="preferred-block" v-model="formData.preferredBlock" required>
               <option value="">Select Block</option>
               <option value="A">Block A</option>
@@ -26,17 +38,17 @@
           </div>
 
           <div class="form-group">
-            <label for="preferred-room">Preferred Room Number</label>
+            <label for="preferred-room">Preferred Room Number *</label>
             <input 
               type="text" 
               id="preferred-room" 
               v-model="formData.preferredRoomNumber" 
-              placeholder="e.g. B-305" 
+              placeholder="e.g. 201" 
               required>
           </div>
 
           <div class="form-group">
-            <label for="reason">Reason for Change</label>
+            <label for="reason">Reason for Change *</label>
             <textarea 
               id="reason" 
               v-model="formData.reason" 
@@ -47,69 +59,58 @@
           </div>
 
           <div class="form-buttons">
-            <button type="submit" class="submit-btn">Submit Request</button>
-            <button type="button" class="submit-btn view-history-btn" @click="showHistoryModal = true">View History</button>
+            <button type="submit" class="submit-btn" :disabled="isLoading">
+              {{ isLoading ? 'Submitting...' : 'Submit Request' }}
+            </button>
+            <button type="button" class="submit-btn view-history-btn" @click="openHistoryModal">View History</button>
           </div>
         </form>
       </div>
 
-      <!-- Right Card - Status Process (commented out) -->
-      <!-- 
-      <div v-if="latestRequest">
-        <div class="status-process-card">
-          <h3>Request Status</h3>
-          <div class="process-steps">
-            <div class="step" :class="{ active: currentStep >= 1, completed: currentStep >= 1 }">
-              <div class="step-number">1</div>
-              <div class="step-content">
-                <div class="step-title">Pending</div>
-                <div class="step-description">Request submitted for review</div>
-              </div>
-              <div class="step-check" v-if="currentStep >= 1">✓</div>
-            </div>
-            
-            <div class="step" :class="{ active: currentStep >= 2, completed: currentStep >= 2 }">
-              <div class="step-number">2</div>
-              <div class="step-content">
-                <div class="step-title">Approved</div>
-                <div class="step-description">Request approved by admin</div>
-              </div>
-              <div class="step-check" v-if="currentStep >= 2">✓</div>
-            </div>
-            
-            <div class="step" :class="{ active: currentStep >= 3, completed: currentStep >= 3 }">
-              <div class="step-number">3</div>
-              <div class="step-content">
-                <div class="step-title">Rejected</div>
-                <div class="step-description">Request not approved</div>
-              </div>
-              <div class="step-check" v-if="currentStep >= 3">✓</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      -->
-
-      <div v-if="showHistoryModal" class="modal-overlay">
+      <!-- History Modal -->
+      <div v-if="showHistoryModal" class="modal-overlay" @click.self="closeHistoryModal">
         <div class="history-popup">
-          <span class="close-icon" @click="showHistoryModal = false">×</span>
-          <h3>Your Room Change History</h3>
-          <div v-if="requestHistory.length === 0">
-            <p>No history found.</p>
+          <div class="modal-header">
+            <h3>Your Room Change History</h3>
+            <button class="close-btn" @click="closeHistoryModal">×</button>
           </div>
-          <div v-else>
-            <div
-              v-for="(item, index) in requestHistory"
-              :key="item._id"
-              class="history-modal-content">
-              <div class="history-box" :class="getStatusClass(item.status)">
-                <p><strong>Preferred Block:</strong> {{ item.preferredBlock }}</p>
-                <p><strong>Preferred Room:</strong> {{ item.preferredRoomNumber }}</p>
-                <p><strong>Reason:</strong> {{ item.reason }}</p>
-                <p><strong>Date:</strong> {{ formatDate(item.createdAt) }}</p>
-                <p><strong>Status:</strong> {{ item.status }}</p>
+          
+          <div class="modal-body">
+            <div v-if="isLoadingHistory" class="loading-history">
+              <p>Loading history...</p>
+            </div>
+            <div v-else-if="requestHistory.length === 0" class="empty-history">
+              <p>No room change requests found.</p>
+              <p class="empty-subtext">Your submitted requests will appear here.</p>
+            </div>
+            <div v-else class="history-list">
+              <div
+                v-for="item in requestHistory"
+                :key="item._id"
+                class="history-item"
+                :class="getStatusClass(item.status)"
+              >
+                <div class="history-header">
+                  <span class="history-date">{{ formatDate(item.createdAt) }}</span>
+                  <span :class="['status-badge', getStatusClass(item.status)]">
+                    {{ formatStatus(item.status) }}
+                  </span>
+                </div>
+                <div class="history-details">
+                  <p><strong>Name:</strong> {{ item.studentName || 'N/A' }}</p>
+                  <p><strong>Current Room:</strong> {{ item.currentRoom || 'N/A' }}</p>
+                  <p><strong>Preferred Block:</strong> {{ item.preferredBlock || 'N/A' }}</p>
+                  <p><strong>Preferred Room:</strong> {{ item.preferredRoomNumber || 'N/A' }}</p>
+                  <p><strong>Reason:</strong> {{ item.reason || 'N/A' }}</p>
+                  <p v-if="item.wardenName"><strong>Processed by:</strong> {{ item.wardenName }}</p>
+                  <p v-if="item.wardenComment"><strong>Warden Comment:</strong> {{ item.wardenComment }}</p>
+                </div>
               </div>
             </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button @click="closeHistoryModal" class="close-modal-btn">Close</button>
           </div>
         </div>
       </div>
@@ -119,7 +120,6 @@
   <Footer/>
 </template>
 
- 
 <script>
 import axios from 'axios'; 
 import Navbar_Student from '../../../../components/Navbar_Student.vue';
@@ -134,145 +134,211 @@ export default {
   data() {
     return {
       formData: {
+        studentName: '',
+        currentRoom: '',
         preferredBlock: '',
         preferredRoomNumber: '',
         reason: ''
       },
-      latestRequest: null,
-      currentStep: 0,// 0 = No request, 1 = Pending, 2 = Approved, 3 = Rejected
-
-      currentRoom: {
-      room: '',
-      block: '',
-      floor: '',
-      // bedType: ''
-    },
-    showHistoryModal: false,
-    requestHistory: [],
-    justSubmitted: false,
+      showHistoryModal: false,
+      requestHistory: [],
+      isLoading: false,
+      isLoadingHistory: false
     };
   },
   methods: {
-getStatusClass(status) {
-  switch (status?.toLowerCase()) {
-    case 'pending':
-      return 'border-pending';
-    case 'approved':
-      return 'border-approved';
-    case 'rejected':
-      return 'border-rejected';
-    default:
-      return '';
-  }
-},
-
-async submitRequest() {
-       const token = localStorage.getItem('token');
-     const config = {
-       headers: {
-      Authorization: `Bearer ${token}`
-    }
-  };
-      try {
-        const { preferredBlock, preferredRoomNumber, reason } = this.formData;
-
-        await axios.post('/api/v1/room-change', {
-          preferredBlock,
-          preferredRoomNumber,
-          reason,
-        },config);
-
-        this.latestRequest = {
-          preferredBlock: this.block,
-          preferredRoomNumber: this.roomNumber,
-          reason: this.reason,
-         createdAt: new Date().toISOString(),
-         status: "Pending",
-        };
-        this.showLatest = true;
-
-       alert('Room change request submitted!');
-        this.formData = { preferredBlock: '', preferredRoomNumber: '', reason: '' };
-        this.fetchRequestHistory();
-         this.justSubmitted = true;
-      } catch (error) {
-        alert('Error submitting request');
-        console.error(error);
+    getStatusClass(status) {
+      if (!status) return '';
+      switch (status?.toLowerCase()) {
+        case 'pending':
+          return 'pending';
+        case 'approved':
+          return 'approved';
+        case 'rejected':
+          return 'rejected';
+        default:
+          return '';
       }
     },
-    async fetchLatestRequest() {
-       const token = localStorage.getItem('token');
-       const config = {
-         headers: {
-      Authorization: `Bearer ${token}`
-    }
-  };
-    try {
-      const res = await axios.get('http://localhost:5000/api/v1/room-change/latest',config);
-      this.latestRequest = res.data;
 
-       const status = res.data?.status?.toLowerCase();
-if (!status) {
-  this.currentStep = 0;
-  return;
-}
-
-switch (status) {
-  case 'pending':
-    this.currentStep = 1;
-    break;
-  case 'approved':
-    this.currentStep = 2;
-    break;
-  case 'rejected':
-    this.currentStep = 3;
-    break;
-  default:
-    this.currentStep = 0;
-}
-} catch (err) {
-      console.error("Error fetching latest request:", err);
-      const status = res.data?.status?.toLowerCase();
-      this.currentStep = 0;
-    }
+    formatStatus(status) {
+      if (!status) return 'Pending';
+      return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
     },
 
-   async fetchStudentRoomDetails() {
-    try {
-      const response = await axios.get('http://localhost:5000/api/v1/users/me');
-      const user = response.data;
+    formatDate(date) {
+      if (!date) return 'N/A';
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    },
 
-      this.currentRoom.room = user.roomNumber || 'N/A';
-      this.currentRoom.block = user.block || 'N/A';
-      this.currentRoom.floor = user.floor || 'N/A';
-      this.currentRoom.bedType = user.bedType || 'Single Bed (3ft x 6ft)';
-    } catch (error) {
-      console.error('Error fetching room details:', error);
+    async openHistoryModal() {
+      this.showHistoryModal = true;
+      this.isLoadingHistory = true;
+      await this.fetchRequestHistory();
+      this.isLoadingHistory = false;
+    },
+
+    closeHistoryModal() {
+      this.showHistoryModal = false;
+    },
+
+    async submitRequest() {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        alert('Please login first');
+        this.$router.push('/login');
+        return;
+      }
+      
+      this.isLoading = true;
+      
+      try {
+        const { studentName, currentRoom, preferredBlock, preferredRoomNumber, reason } = this.formData;
+        
+        // Validate all fields
+        if (!studentName || studentName.trim() === '') {
+          alert('Please enter your name');
+          this.isLoading = false;
+          return;
+        }
+        
+        if (!currentRoom || currentRoom.trim() === '') {
+          alert('Please enter your current room number');
+          this.isLoading = false;
+          return;
+        }
+        
+        if (!preferredBlock) {
+          alert('Please select a preferred block');
+          this.isLoading = false;
+          return;
+        }
+        
+        if (!preferredRoomNumber || preferredRoomNumber.trim() === '') {
+          alert('Please enter preferred room number');
+          this.isLoading = false;
+          return;
+        }
+        
+        if (!reason || reason.trim() === '') {
+          alert('Please provide a reason for the room change');
+          this.isLoading = false;
+          return;
+        }
+        
+        // Prepare request data with all fields
+        const requestData = {
+          studentName: studentName.trim(),
+          currentRoom: currentRoom.trim(),
+          preferredBlock: preferredBlock,
+          preferredRoomNumber: preferredRoomNumber.trim(),
+          reason: reason.trim()
+        };
+        
+        console.log('Sending request to backend:', requestData);
+        
+        const response = await axios.post(
+          'http://localhost:5000/api/v1/room-change', 
+          requestData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        console.log('Response from backend:', response.data);
+        
+        alert('Room change request submitted successfully!');
+        
+        // Reset form
+        this.formData = { 
+          studentName: '', 
+          currentRoom: '', 
+          preferredBlock: '', 
+          preferredRoomNumber: '', 
+          reason: '' 
+        };
+        
+        // Refresh history if modal is open
+        if (this.showHistoryModal) {
+          await this.fetchRequestHistory();
+        }
+        
+      } catch (error) {
+        console.error('Error submitting request:', error);
+        
+        if (error.response) {
+          console.error('Response data:', error.response.data);
+          console.error('Response status:', error.response.status);
+          
+          let errorMessage = 'Error: ';
+          
+          if (error.response.data && error.response.data.message) {
+            errorMessage += error.response.data.message;
+          } else if (error.response.data && error.response.data.error) {
+            errorMessage += error.response.data.error;
+          } else if (error.response.status === 401) {
+            errorMessage = 'Session expired. Please login again.';
+            localStorage.removeItem('token');
+            this.$router.push('/login');
+          } else if (error.response.status === 500) {
+            errorMessage = 'Server error. Please check backend logs.';
+          } else {
+            errorMessage += `Status ${error.response.status}`;
+          }
+          
+          alert(errorMessage);
+        } else if (error.request) {
+          alert('No response from server. Please check if backend is running at http://localhost:5000');
+        } else {
+          alert(`Error: ${error.message}`);
+        }
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async fetchRequestHistory() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found');
+        return;
+      }
+      
+      try {
+        console.log('Fetching request history...');
+        const res = await axios.get('http://localhost:5000/api/v1/room-change/my-requests', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        this.requestHistory = res.data.data || res.data || [];
+        console.log('Request history fetched:', this.requestHistory);
+        
+        if (this.requestHistory.length === 0) {
+          console.log('No history found');
+        }
+      } catch (error) {
+        console.error("Failed to fetch request history:", error);
+        if (error.response) {
+          console.error('Error response:', error.response.data);
+        }
+        this.requestHistory = [];
+      }
     }
   },
-
-  async fetchRequestHistory() {
-  const token = localStorage.getItem('token');
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  };
-  try {
-    const res = await axios.get('http://localhost:5000/api/v1/room-change/history', config);
-    this.requestHistory = res.data;
-  } catch (error) {
-    console.error("Failed to fetch request history:", error);
-  }
-},
-formatDate(date) {
-  return new Date(date).toLocaleDateString();
-}
-
-},
-created() {
-    this.fetchLatestRequest();
-    this.fetchStudentRoomDetails(); // fetch current room details
+  mounted() {
+    // Load history in background when component mounts
     this.fetchRequestHistory();
   },
 };
@@ -283,6 +349,7 @@ created() {
   max-width: 1200px;
   margin: 0 auto;
   padding: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 h1 {
@@ -297,6 +364,7 @@ h1 {
 .cards-wrapper {
   display: flex;
   gap: 30px;
+  justify-content: center;
 }
 
 .form-card {
@@ -305,38 +373,8 @@ h1 {
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   padding: 25px;
-  width:1000px;
-}
-
-.status-process-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  padding: 25px;
-  flex: 1;
-  max-width: 350px;
-}
-
-h3 {
-  color: #1BBC9B;
-  margin-bottom: 15px;
-}
-.current-room {
-  background: #f8f8f8;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 30px;
-  text-align: center; /* Added center alignment */
-}
-.current-room h3{
-  font-size: 20px;
-}
-.room-info {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 15px;
-  align-items: center; /* Center align items horizontally */
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .request-form {
@@ -344,7 +382,6 @@ h3 {
   flex-direction: column;
   gap: 20px;
 }
-
 
 .form-group {
   display: flex;
@@ -355,6 +392,7 @@ h3 {
 label {
   font-weight: 600;
   color: #555;
+  font-size: 15px;
 }
 
 input, select, textarea {
@@ -362,12 +400,13 @@ input, select, textarea {
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 16px;
-  transition: border 0.3s;
+  transition: all 0.3s;
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: #1BBC9B;
   outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 188, 155, 0.2);
 }
 
 textarea {
@@ -375,116 +414,243 @@ textarea {
   min-height: 100px;
 }
 
+.form-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+
 .submit-btn {
   background: #1BBC9B;
   color: white;
   border: none;
-  padding: 14px;
-  border-radius: 6px;
+  padding: 14px 24px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 10px;
   width: 200px;
-  align-self: center;
 }
 
-.submit-btn:hover {
+.submit-btn:hover:not(:disabled) {
   background: #15967D;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(27, 188, 155, 0.2);
+  box-shadow: 0 4px 12px rgba(27, 188, 155, 0.3);
 }
 
-.process-steps {
+.submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.view-history-btn {
+  background-color: #1BBC9B;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.history-popup {
+  background-color: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-top: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease;
 }
 
-.step {
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 20px 25px;
+  border-bottom: 2px solid #1BBC9B;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  position: relative;
-  padding-bottom: 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px 12px 0 0;
 }
 
-.step:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  left: 16px;
-  top: 36px;
-  bottom: -20px;
-  width: 2px;
-  background: #e0e0e0;
+.modal-header h3 {
+  margin: 0;
+  color: #1BBC9B;
+  font-size: 24px;
+  font-weight: 600;
 }
 
-.step-number {
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #999;
+  transition: all 0.2s;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: #e0e0e0;
-  color: #666;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  flex-shrink: 0;
-  z-index: 1;
+  border-radius: 50%;
 }
 
-.step-content {
-  flex-grow: 1;
+.close-btn:hover {
+  color: #dc3545;
+  background-color: #f0f0f0;
 }
 
-.step-title {
-  font-weight: 600;
-  color: #666;
-  margin-bottom: 4px;
+.modal-body {
+  padding: 20px 25px;
+  overflow-y: auto;
+  flex: 1;
 }
 
-.step-description {
+.modal-footer {
+  padding: 15px 25px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f9f9f9;
+  border-radius: 0 0 12px 12px;
+}
+
+.close-modal-btn {
+  padding: 8px 20px;
+  background-color: #1BBC9B;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.close-modal-btn:hover {
+  background-color: #15967D;
+}
+
+.loading-history, .empty-history {
+  text-align: center;
+  padding: 40px 20px;
+  color: #777;
+}
+
+.empty-history p {
+  margin: 5px 0;
+}
+
+.empty-subtext {
+  font-size: 12px;
   color: #999;
 }
 
-.step-check {
-  color: white;
-  background: #1BBC9B;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+.history-list {
   display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.history-item {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #ddd;
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.history-item.pending {
+  border-left-color: #f4c430;
+}
+
+.history-item.approved {
+  border-left-color: #28a745;
+}
+
+.history-item.rejected {
+  border-left-color: #dc3545;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.history-date {
   font-size: 12px;
-  flex-shrink: 0;
+  color: #888;
 }
 
-/* Active step styling */
-.step.active .step-number {
-  background: #1BBC9B;
-  color: white;
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
-.step.active .step-title {
-  color: #1BBC9B;
+.status-badge.pending {
+  background-color: #fff3cd;
+  color: #856404;
 }
 
-/* Completed step styling */
-.step.completed .step-number {
-  background: #1BBC9B;
-  color: white;
+.status-badge.approved {
+  background-color: #d4edda;
+  color: #155724;
 }
 
-.step.completed .step-title {
-  color: #1BBC9B;
+.status-badge.rejected {
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
-.step.completed::after {
-  background: #1BBC9B;
+.history-details {
+  font-size: 14px;
+}
+
+.history-details p {
+  margin: 6px 0;
+  line-height: 1.4;
+}
+
+.history-details strong {
+  color: #555;
+  font-weight: 600;
+  min-width: 120px;
+  display: inline-block;
 }
 
 @media (max-width: 768px) {
@@ -496,179 +662,31 @@ textarea {
     flex-direction: column;
   }
   
-  .form-card, .status-process-card {
+  .form-card {
     padding: 20px;
     max-width: 100%;
   }
+  
+  .form-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .submit-btn {
+    width: 100%;
+  }
+  
+  .history-popup {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modal-header h3 {
+    font-size: 20px;
+  }
+  
+  .history-details strong {
+    min-width: 100px;
+  }
 }
-
-.modal-content-stacked {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-}
- 
-.history-card {
-  /* border-left: 5px solid #1BBC9B; */
-  padding: 15px 20px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  background: #f4f4f4;
-}
- 
-
-/* .status.pending {
-  color: #FFA500;
-  font-weight: bold;
-}
-
-.status.approved {
-  color: #28a745;
-  font-weight: bold;
-}
-
-.status.rejected {
-  color: #dc3545;
-  font-weight: bold;
-} */
- 
-
-.history-btn-wrapper {
-  margin-top: 40px;
-  display: flex;
-  justify-content: center;
-}
-.history-btn-wrapper .submit-btn {
-  background-color: #1BBC9B;
-  width: 150px;
-}
-
- 
-.close-icon {
-  position: absolute;
-  top: 18px;
-  right: 28px;
-  width: 32px;
-  height: 32px;
-  line-height: 32px;
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-  color: #dc3545;
-  background-color: white;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  z-index: 1001;
-  transition: all 0.2s ease-in-out;
-  margin-top: 18px;
-}
-
-.close-icon:hover {
-  background-color: #dc3545;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-  .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.history-popup {
-  position: relative;
-  background-color: #fff;
-  padding: 25px 30px;
-  border-radius: 12px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-}
-
-.history-popup h3{
-  text-align: center;
-  font-size: 30px;
-  margin-right: 20px;
-  margin-top: 30px;
-}
-
-.history-popup p{
-   font-size: 17px;
-  margin-top: 60px;
-  font-style: italic;
-  color:#666;
-}
-
-.history-modal-content {
-  text-align: left;
-  line-height: 1.4;        
-}
-
-.history-modal-content p {
-  margin: 4px 0;          /* Tighter spacing between paragraphs */
-}
-.history-box {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* ✅ Box shadow added */
-  margin-bottom: 20px;
-}
-
-.form-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.view-history-btn {
-  background-color: #1BBC9B;
-  width: 200px;
-}
-
-.recent-request-box {
-  margin-top: 30px;
-  background-color: #ffffff;
-  padding: 16px;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  font-size: 15px;
-  transition: box-shadow 0.3s ease;
-  width:350px;
-}
-.recent-request-box h4{
-  color:#1BBC9B;
-  text-align: center;
-  font-size: 20px; 
-  margin-bottom: 10px; 
-}
-
-.border-pending {
-  border-left: 6px solid #f4c430; /* Yellow */
-}
-
-.border-approved {
-  border-left: 6px solid #28a745; /* Green */
-}
-
-.border-rejected {
-  border-left: 6px solid #dc3545; /* Red */
-}
-
-</style> 
+</style>

@@ -1,9 +1,18 @@
- import mongoose from 'mongoose';
+// models/RoomChange.model.js
+import mongoose from 'mongoose';
 
 const roomChangeRequestSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
+  },
+  studentName: {
+    type: String,
+    required: true,
+  },
+  currentRoom: {
+    type: String,
     required: true,
   },
   preferredBlock: {
@@ -27,6 +36,11 @@ const roomChangeRequestSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-});
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { timestamps: true });
 
-export default mongoose.model('RoomChangeRequest', roomChangeRequestSchema, 'room');
+const RoomChangeRequest = mongoose.model('RoomChangeRequest', roomChangeRequestSchema);
+export default RoomChangeRequest;

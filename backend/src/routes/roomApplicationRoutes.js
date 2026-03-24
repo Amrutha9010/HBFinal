@@ -17,6 +17,18 @@ router.post(
   ]),
   async (req, res) => {
     try {
+      // 🔒 Prevent duplicate application
+const existingApplication = await RoomApplication.findOne({
+  rollNumber: req.body.rollNumber,
+  status: { $in: ['Pending', 'Approved'] }
+});
+
+if (existingApplication) {
+  return res.status(400).json({
+    success: false,
+    message: 'You have already applied for hostel'
+  });
+}
       const {
         fullName,
         rollNumber,

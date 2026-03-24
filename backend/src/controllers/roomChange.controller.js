@@ -1,4 +1,5 @@
- import RoomChangeRequest from '../models/RoomChange.model.js';
+// controllers/roomChangeController.js
+import RoomChangeRequest from '../models/RoomChange.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // POST /api/v1/room-change
@@ -8,14 +9,24 @@ export const submitRoomChange = asyncHandler(async (req, res) => {
     console.log("Request user:", req.user);
     console.log("Request body:", req.body);
     
-    const { preferredBlock, preferredRoomNumber, reason } = req.body;
+    const { studentName, currentRoom, preferredBlock, preferredRoomNumber, reason } = req.body;
     const studentId = req.user._id;
+
+    // Validate required fields
+    if (!studentName || !currentRoom || !preferredBlock || !preferredRoomNumber || !reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required: studentName, currentRoom, preferredBlock, preferredRoomNumber, reason'
+      });
+    }
 
     const newRequest = await RoomChangeRequest.create({
       student: studentId,
+      studentName: studentName.trim(),
+      currentRoom: currentRoom.trim(),
       preferredBlock,
-      preferredRoomNumber,
-      reason,
+      preferredRoomNumber: preferredRoomNumber.trim(),
+      reason: reason.trim(),
       status: 'Pending',
     });
 
@@ -30,7 +41,6 @@ export const submitRoomChange = asyncHandler(async (req, res) => {
   }
 });
 
-
 // GET /api/v1/room-change/my-requests
 export const getMyRoomChangeRequests = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
@@ -43,7 +53,7 @@ export const getMyRoomChangeRequests = asyncHandler(async (req, res) => {
   });
 });
 
- export const getLatestRoomChangeRequest = asyncHandler(async (req, res) => {
+export const getLatestRoomChangeRequest = asyncHandler(async (req, res) => {
   const latestRequest = await RoomChangeRequest.findOne({ student: req.user._id })
     .sort({ createdAt: -1 });
 
@@ -51,7 +61,7 @@ export const getMyRoomChangeRequests = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'No room change request found.' });
   }
 
-  res.status(200).json(latestRequest); //  Make sure this includes "status"
+  res.status(200).json(latestRequest);
 });
 
 export const getRoomChangeHistory = async (req, res) => {
@@ -62,7 +72,6 @@ export const getRoomChangeHistory = async (req, res) => {
 // GET /api/v1/room-change/all → Warden views all student requests
 export const getAllRoomChangeRequests = asyncHandler(async (req, res) => {
   const requests = await RoomChangeRequest.find()
-    .populate('student', 'name roomNumber block') // optional if you want student info
     .sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -86,6 +95,7 @@ export const updateRoomChangeStatus = asyncHandler(async (req, res) => {
   }
 
   request.status = status;
+  request.updatedAt = Date.now();
   await request.save();
 
   res.status(200).json({
@@ -94,4 +104,3 @@ export const updateRoomChangeStatus = asyncHandler(async (req, res) => {
     data: request,
   });
 });
-

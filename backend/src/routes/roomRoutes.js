@@ -29,4 +29,23 @@ router.put('/assign/:roomNo', async (req, res) => {
   }
 });
 
+// GET vacant rooms count
+router.get('/vacant-count', async (req, res) => {
+  try {
+    const rooms = await Room.find();
+
+    let vacantRooms = 0;
+
+    rooms.forEach(room => {
+      if (room.occupants.length < room.capacity) {
+        vacantRooms++;
+      }
+    });
+
+    res.json({ count: vacantRooms });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching vacant rooms' });
+  }
+});
+
 export default router;

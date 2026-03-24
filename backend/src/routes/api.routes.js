@@ -8,11 +8,7 @@ import complaintRoutes from './complaint.routes.js';
 import roomRoutes from './roomRoutes.js';
 import roomAssignmentRoutes from './roomAssignment.routes.js';
 import roomApplicationRoutes from './roomApplicationRoutes.js';
-
-
-
-// import roomApplicationRoutes from './roomApplication.routes.js';
-
+import paymentRoutes from './payment.routes.js';
 
 const router = express.Router();
 
@@ -25,7 +21,7 @@ router.use('/api/v1/complaints', complaintRoutes);
 router.use('/api/v1/rooms', roomRoutes);
 router.use('/api/v1/room-assignment', roomAssignmentRoutes);
 router.use('/api/v1/room-application', roomApplicationRoutes);
-
+router.use('/api/v1/fees', paymentRoutes);
 
 // router.use('/api/v1/room-application', roomApplicationRoutes);
 

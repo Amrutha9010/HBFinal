@@ -3,7 +3,7 @@
   <div class="request-container1">
     <div class="request-container">
       <div class="cards-wrapper">
-        <!-- Complaint Form -->
+        <!-- Complaint Form - Left Side -->
         <div class="form-card">
           <h1 class="center-heading">Complaint Submission</h1>
 
@@ -41,34 +41,45 @@
           </div>
         </div>
 
-        <!-- Status Tracker -->
-      
-    
+        <!-- Complaint History - Right Side (No Filters) -->
+        <div class="history-card">
+          <h2>Complaint History</h2>
 
-     <!-- Complaint History List -->
-<div class="complaint-history" v-if="complaints.length > 0">
-  <h2>All Complaints</h2>
-
-  <div class="complaint-card" v-for="(c, index) in complaints" :key="c._id">
-        <div class="complaint-row">
-      <strong>Category:</strong> <span>{{ c.category }}</span>
-    </div>
-    <div class="complaint-row">
-      <strong>Description:</strong> <span>{{ c.description }}</span>
-    </div>
-   <div class="complaint-row">
-  <strong>Status:</strong> <span>{{ formatStatus(c.status) }}</span>
-</div>
-
-    <div class="complaint-row">
-      <strong>Date:</strong> <span>{{ formatDate(c.createdAt) }}</span>
+          <!-- History List - Show All Complaints -->
+          <div class="history-list" v-if="complaints.length > 0">
+            <div 
+              class="history-item" 
+              v-for="c in complaints" 
+              :key="c._id"
+              :class="getStatusClass(c.status)"
+            >
+              <div class="complaint-header">
+                <span class="complaint-category">{{ c.category }}</span>
+                <span :class="['status-badge', getStatusClass(c.status)]">
+                  {{ formatStatus(c.status) }}
+                </span>
+              </div>
+              <div class="complaint-description">
+                {{ c.description }}
+              </div>
+              <div class="complaint-date">
+                {{ formatDate(c.createdAt) }}
+              </div>
+              <div v-if="c.wardenRemark" class="warden-remark">
+                <strong>Remark:</strong> {{ c.wardenRemark }}
+              </div>
+              <div v-if="c.image" class="complaint-image">
+                <a :href="c.image" target="_blank" class="image-link">View Image</a>
+              </div>
+            </div>
+          </div>
+          <div class="empty-history" v-else>
+            <p>No complaints found.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-
-    </div>
-  </div>
-</div>
   <Footer />
 </template>
 
@@ -85,8 +96,6 @@ export default {
       complaintType: '',
       complaintDescription: '',
       uploadedPhoto: null,
-      statusStep: 1,
-      currentComplaint: null,
       complaints: []
     };
   },
@@ -94,38 +103,62 @@ export default {
     handleFileUpload(event) {
       this.uploadedPhoto = event.target.files[0];
     },
+    
     formatDate(dateStr) {
-      return new Date(dateStr).toLocaleString('en-IN');
+      if (!dateStr) return 'N/A';
+      return new Date(dateStr).toLocaleString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
     },
+    
+    formatStatus(status) {
+      if (!status) return 'Pending';
+      return status
+        .trim()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    },
+    
+    getStatusClass(status) {
+      switch(status?.toLowerCase()) {
+        case 'pending':
+          return 'pending';
+        case 'in progress':
+        case 'in-progress':
+          return 'in-progress';
+        case 'staff assigned':
+        case 'staff-assigned':
+          return 'staff-assigned';
+        case 'resolved':
+          return 'resolved';
+        case 'rejected':
+          return 'rejected';
+        default:
+          return 'pending';
+      }
+    },
+    
     async fetchStudentComplaints() {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/v1/complaints/my', {
+        const res = await axios.get('http://localhost:5000/api/v1/complaints/my', {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
 
-        this.complaints = res.data.data;
-
-        if (this.complaints.length > 0) {
-          this.currentComplaint = this.complaints[0];
-
-          switch (this.currentComplaint.status) {
-            case 'In Progress':
-              this.statusStep = 2;
-              break;
-            case 'Resolved':
-              this.statusStep = 3;
-              break;
-            default:
-              this.statusStep = 1;
-          }
-        }
+        this.complaints = res.data.data || [];
+        console.log('Fetched complaints:', this.complaints);
+        
       } catch (err) {
-        console.error('❌ Error fetching student complaints:', err);
+        console.error('Error fetching student complaints:', err);
+        this.complaints = [];
       }
     },
+    
     async submitComplaint() {
       const token = localStorage.getItem('token');
 
@@ -143,7 +176,7 @@ export default {
           formData.append('image', this.uploadedPhoto);
         }
 
-        await axios.post('/api/v1/complaints', formData, {
+        await axios.post('http://localhost:5000/api/v1/complaints', formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
@@ -152,32 +185,25 @@ export default {
 
         alert('Complaint submitted successfully!');
         this.resetComplaintForm();
-        this.fetchStudentComplaints(); // Refresh list
+        await this.fetchStudentComplaints(); // Refresh list
+        
       } catch (err) {
         console.error('Complaint submission error:', err);
         alert(err.response?.data?.message || 'Failed to submit complaint.');
       }
     },
+    
     resetComplaintForm() {
       this.complaintType = '';
       this.complaintDescription = '';
       this.uploadedPhoto = null;
-    },
-  formatStatus(status) {
-  return status
-    .trim()
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
+    }
   },
   mounted() {
     this.fetchStudentComplaints();
   }
 };
 </script>
-
 
 <style scoped>
 .request-container {
@@ -199,8 +225,9 @@ export default {
 
 .cards-wrapper {
   display: flex;
-  gap: 10px;
-  
+  gap: 30px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
 }
 
 .form-card {
@@ -208,12 +235,164 @@ export default {
   border-radius: 12px;
   box-shadow: 0 2px 15px rgba(0,0,0,0.1);
   padding: 30px;
-  width:800px;
+  flex: 1;
+  min-width: 300px;
 }
 
-.form-card {
+.history-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+  padding: 30px;
   flex: 1;
- 
+  min-width: 300px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-card h2 {
+  color: #1BBC9B;
+  margin-bottom: 20px;
+  font-size: 24px;
+  text-align: center;
+  border-bottom: 2px solid #1BBC9B;
+  padding-bottom: 10px;
+}
+
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.history-item {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-left: 4px solid #ddd;
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.history-item.pending {
+  border-left-color: #f4c430;
+}
+
+.history-item.in-progress {
+  border-left-color: #3498db;
+}
+
+.history-item.staff-assigned {
+  border-left-color: #9b59b6;
+}
+
+.history-item.resolved {
+  border-left-color: #28a745;
+}
+
+.history-item.rejected {
+  border-left-color: #dc3545;
+}
+
+.complaint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.complaint-category {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.in-progress {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.staff-assigned {
+  background: #e7e3fc;
+  color: #5a3e9b;
+}
+
+.status-badge.resolved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.complaint-description {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.complaint-date {
+  color: #999;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.warden-remark {
+  background: #f0f0f0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+}
+
+.warden-remark strong {
+  color: #333;
+}
+
+.complaint-image {
+  margin-top: 8px;
+}
+
+.image-link {
+  color: #1BBC9B;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.image-link:hover {
+  text-decoration: underline;
+}
+
+.empty-history {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-style: italic;
 }
 
 .form-group {
@@ -261,42 +440,6 @@ textarea.form-input {
   overflow-y: auto;
 }
 
-.complaint-history {
-  flex: 1;
-  max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
-  
- 
-}
-.step-content {
-  padding-left: 20px;
-}
-
-.step-content h3 {
-  margin: 0 0 5px 0;
-  color: #333;
-}
-
-.step-content p {
-  margin: 0;
-  color: #777;
-}
-
-.current-status {
-  margin-top: 30px;
-  padding: 15px;
-  background: #f9f9f9;
-  border-radius: 8px;
-}
-
-.current-status h3 {
-  margin-top: 0;
-  color: #1BBC9B;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
 .submit-wrapper {
   display: flex;
   justify-content: center;
@@ -322,104 +465,54 @@ textarea.form-input {
   box-shadow: 0 4px 12px rgba(27, 188, 155, 0.3);
 }
 
+/* Scrollbar Styling */
+.history-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: #1BBC9B;
+  border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: #15967D;
+}
+
 @media (max-width: 992px) {
   .cards-wrapper {
     flex-direction: column;
   }
   
-  .status-card {
+  .form-card, .history-card {
+    width: 100%;
+  }
+  
+  .history-card {
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .request-container1 {
+    padding: 1rem;
+  }
+  
+  .request-container {
+    padding: 0 10px;
+  }
+  
+  .form-card, .history-card {
+    padding: 20px;
+  }
+  
+  .submit-btn {
     width: 100%;
   }
 }
-@media (max-width: 992px) {
-  .cards-wrapper {
-    flex-direction: column;
-  }
-}
-
-
-@media (max-width: 768px) {
-  .request-container {
-    padding: 20px;
-  }
-  
-  .form-card, .status-card {
-    padding: 20px;
-  }
-}
-.complaint-history {
-  margin-top: 0px;
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.history-heading {
-  font-size: 22px;
-  color: #1BBC9B;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 8px;
-}
-
-.history-card {
-  padding: 15px;
-  margin-bottom: 15px;
-  background: #f9f9f9;
-  border-radius: 10px;
-  border-left: 5px solid #1BBC9B;
-}
-
-.complaint-image {
-  margin-top: 10px;
-  max-width: 100px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-
-.complaint-history {
-  margin-top: 0px;
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-}
-
-.complaint-history h2 {
-  font-size: 26px;
-  color: #1BBC9B;
-  margin-bottom: 24px;
-  font-weight: bold;
-  text-align: left;
-}
-
-.complaint-card {
-  background: #f9f9f9;
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  border-left: 5px solid #1BBC9B;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
-}
-
-.complaint-card:hover {
-  transform: translateY(-2px);
-  background: #f0fdfc;
-}
-
-.complaint-row {
-  display: flex;
-  margin-bottom: 8px;
-  font-size: 16px;
-  color: #555;
-}
-
-.complaint-row strong {
-  width: 120px;
-  font-weight: 600;
-  color: #333;
-}
-
 </style>

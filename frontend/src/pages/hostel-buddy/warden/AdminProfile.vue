@@ -75,7 +75,7 @@
             </div>
           </div>
 
-          <div class="profile-section">
+          <!-- <div class="profile-section">
             <h2><i class="fas fa-shield-alt"></i> Account Security</h2>
             <div class="security-actions">
               <button @click="showChangePassword = true" class="security-btn">
@@ -85,14 +85,14 @@
                 <i class="fas fa-lock"></i> Two-Factor Authentication
               </button>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>
     <Footer />
 
     <!-- Change Password Modal -->
-    <div v-if="showChangePassword" class="modal">
+    <!-- <div v-if="showChangePassword" class="modal">
       <div class="modal-content">
         <span class="close" @click="showChangePassword = false">&times;</span>
         <h2>Change Password</h2>
@@ -101,10 +101,10 @@
         <div class="form-group"><label>Confirm New Password</label><input v-model="password.confirm" type="password" /></div>
         <button @click="updatePassword" class="submit-btn">Update Password</button>
       </div>
-    </div>
+    </div> -->
 
     <!-- 2FA Modal -->
-    <div v-if="showTwoFactorModal" class="modal">
+    <!-- <div v-if="showTwoFactorModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="showTwoFactorModal = false">&times;</span>
         <h2>Two-Factor Authentication</h2>
@@ -118,7 +118,7 @@
           <button @click="enableTwoFactor" class="submit-btn">Enable 2FA</button>
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 

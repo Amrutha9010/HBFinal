@@ -45,7 +45,6 @@
         </div>
       </div>
 
-      <!-- ✅ Image spanning 2 columns -->
       <div class="quote-image-box">
         <img :src="quoteImage" alt="Mess Quote" class="quote-image" />
       </div>

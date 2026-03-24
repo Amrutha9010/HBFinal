@@ -22,6 +22,9 @@
         <h3>{{ welcomeTitle }}</h3>
         <p>{{ welcomeText }}</p>
         <button class="btn transparent" @click="goToRegister">Sign Up</button>
+        <button class="btn transparent" @click="goToHome">
+          Go to Home
+        </button>
       </div>
     </div>
 
@@ -61,6 +64,9 @@ export default {
     }
   },
   methods: {
+    goToHome() {
+      this.$router.push('/hostel-buddy'); // or '/' based on your route
+    },
     async handleLogin() {
       try {
         const response = await fetch('/api/v1/auth/login', {
@@ -120,7 +126,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 3rem 2rem;
+  padding: 2rem 2rem;
   background: linear-gradient(to bottom, #e0f8f6 0%, #f0fdfc 30%, #ffffff 50%, #f0fdfc 70%, #e0f8f6 100%);
   position: relative;
   overflow: hidden;

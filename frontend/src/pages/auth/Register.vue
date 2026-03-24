@@ -6,13 +6,16 @@
           <h2>{{ welcomeTitle }}</h2>
           <p>{{ welcomeText }}</p>
           <button class="btn transparent" @click="goToLogin">Sign In</button>
+          <button class="btn transparent" @click="goToHome">
+            Go to Home
+          </button>
         </div>
 
         <div class="form-container">
           <h2 class="title">Sign Up</h2>
           <div class="role-selection">
             <button type="button" :class="{ active: form.role === 'student' }" @click="form.role = 'student'">Student</button>
-            <button type="button" :class="{ active: form.role === 'warden' }" @click="form.role = 'warden'">Warden</button>
+            <!-- <button type="button" :class="{ active: form.role === 'warden' }" @click="form.role = 'warden'">Warden</button> -->
           </div>
 
           <form @submit.prevent="handleRegister">
@@ -114,6 +117,9 @@ export default {
   methods: {
     goToLogin() {
       this.$router.push('/login')
+    },
+    goToHome() {
+      this.$router.push('/hostel-buddy'); // or '/' if your home route is root
     },
     checkPasswordStrength() {
       let strength = 0
@@ -225,7 +231,7 @@ export default {
         }))
 
         // Redirect based on role
-        this.$router.push(`/${this.form.role}-dashboard`)
+        this.$router.push(`/login`)
 
       } catch (err) {
         console.error('Registration error:', err)
