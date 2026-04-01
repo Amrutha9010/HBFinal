@@ -35,7 +35,7 @@ const seedWarden = async () => {
 
     console.log('✅ Warden created successfully');
     console.log('Email: chappaamrutha@gmail.com');
-    console.log('Password: password123');
+    console.log('Password: 123456');
 
   } catch (error) {
     console.error('❌ Error seeding warden:', error);
