@@ -87,7 +87,7 @@
 <script>
 import axios from 'axios';
 import Footer from '../../../components/Footer.vue';
-import Navbar_warden from '../../../components/Navbar_warden.vue';
+import Navbar_warden from '../../../components/Navbar_Warden.vue';
 
 export default {
   components: { Navbar_warden, Footer },

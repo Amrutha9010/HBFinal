@@ -112,7 +112,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import Navbar_warden from '../../../components/Navbar_warden.vue'
+import Navbar_warden from '../../../components/Navbar_Warden.vue'
 import Footer from '../../../components/Footer.vue'
 import { API_URL } from "@/config";
 

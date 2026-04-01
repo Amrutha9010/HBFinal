@@ -101,7 +101,7 @@
   <Footer/>
 </template>
 <script>
-import Navbar_warden from '../../../components/Navbar_warden.vue';
+import Navbar_warden from '../../../components/Navbar_Warden.vue';
 import Footer from '../../../components/Footer.vue';
 
 export default {
