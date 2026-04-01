@@ -10,11 +10,11 @@ import WardenDashboard from '@/pages/hostel-buddy/warden/WardenDashboard.vue'
 import StudentDashboard from '@/pages/hostel-buddy/student/StudentDashboard.vue'
 import StudentProfile  from '@/pages/hostel-buddy/student/profile/StudentProfile.vue'
 import ApplyLeave from '@/pages/hostel-buddy/student/leave/ApplyLeave.vue'
-import CancelMeal from '@/pages/hostel-buddy/student/mess/CancelMeal.vue'
+// import CancelMeal from '@/pages/hostel-buddy/student/mess/CancelMeal.vue' (disabled)
 import RoomDetails from '@/pages/hostel-buddy/student/room/RoomDetails.vue'
 import ChangeRequest from '@/pages/hostel-buddy/student/room/ChangeRequest.vue'
 import Complaints from '@/pages/hostel-buddy/student/complaints/Complaints.vue'
-import Feedback from '@/pages/hostel-buddy/student/mess/Feedback.vue'
+// import Feedback from '@/pages/hostel-buddy/student/mess/Feedback.vue' (disabled)
 import Menu from '@/pages/hostel-buddy/student/mess/Menu.vue'
 import AdminProfile from '@/pages/hostel-buddy/warden/AdminProfile.vue'
 import Announcements from '@/pages/hostel-buddy/warden/Announcements.vue'
@@ -101,11 +101,6 @@ const routes = [
       component: ApplyLeave
     },
      {
-      path: '/cancel-meal',
-      name: 'CancelMeal',
-      component: CancelMeal
-    },
-     {
       path: '/room-details',
       name: 'RoomDetails',
       component: RoomDetails
@@ -119,11 +114,6 @@ const routes = [
       path: '/complaints',
       name: 'Complaints',
       component: Complaints
-    },
-     {
-      path: '/feedback',
-      name: 'Feedback',
-      component: Feedback
     },
      {
       path: '/menu',

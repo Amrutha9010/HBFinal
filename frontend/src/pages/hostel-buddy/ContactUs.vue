@@ -302,7 +302,7 @@ export default {
 
 .contact-page.dark-theme .contact-hero {
   background: linear-gradient(135deg, rgba(27, 188, 155, 0.8), rgba(22, 160, 133, 0.8)),
-              url('@/assets/images/payments.jpg');
+              url('@/assets/images/payment.jpg');
 }
 
 .contact-page.dark-theme .contact-card {
@@ -373,8 +373,7 @@ export default {
 
 /* Hero Section */
 .contact-hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-              url('@/assets/images/contact-hero.jpg');
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
   background-size: cover;
   background-position: center;
   height: 300px;
@@ -707,8 +706,7 @@ export default {
 }
 
 .contact-hero {
-  background: linear-gradient(135deg, rgba(27, 188, 155, 0.8), rgba(22, 160, 133, 0.8)),
-              url('@/assets/images/contact-hero.jpg');
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
   background-size: cover;
   background-position: center;
   height: 300px;
