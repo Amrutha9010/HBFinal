@@ -44,6 +44,7 @@
 import axios from "axios";
 import Navbar_warden from "../../../components/Navbar_warden.vue";
 import Footer from "../../../components/Footer.vue";
+import { API_URL } from "@/config";
 
 export default {
   components: {
@@ -67,7 +68,7 @@ export default {
   methods: {
     async fetchMenu() {
       try {
-        const res = await axios.get("http://localhost:5000/api/menu");
+        const res = await axios.get(`${API_URL}/api/menu`);
         this.weeklyMenu = res.data.weeklyMenu;
       } catch (err) {
         console.error("Error fetching menu", err);
@@ -87,7 +88,7 @@ export default {
 
       try {
         await axios.put(
-          `http://localhost:5000/api/menu/${this.editingDay}`,
+          `${API_URL}/api/menu/${this.editingDay}`,
           this.form
         );
 

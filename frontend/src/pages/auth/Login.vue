@@ -8,7 +8,7 @@
           <button :class="{ active: role === 'Warden' }" @click="selectRole('Warden')">Warden</button>
         </div>
         <form @submit.prevent="handleLogin">
-          <input type="text" placeholder="Email or Phone" v-model="email" required />
+          <input type="text" placeholder="Email" v-model="email" required />
           <input type="password" placeholder="Password" v-model="password" required />
           <div class="options">
             <label><input type="checkbox" v-model="remember" /> Remember me</label>
@@ -38,6 +38,8 @@
 
 <script>
 import ForgotPassword from './ForgotPassword.vue';
+import {API_URL} from "@/config";
+import axios from "axios";
 
 export default {
   name: 'Login',
@@ -67,43 +69,33 @@ export default {
     goToHome() {
       this.$router.push('/hostel-buddy'); // or '/' based on your route
     },
+
     async handleLogin() {
       try {
-        const response = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: this.email.trim(),
-            password: this.password
-          }),
-          credentials: 'include'
+        const res = await axios.post(`${API_URL}/api/v1/auth/login`, {
+          email: this.email.trim().toLowerCase(),
+          password: this.password
         });
 
-        const data = await response.json();
+        const user = res.data.data.user;
 
-        if (!response.ok) {
-          throw new Error(data.message || 'Login failed. Please try again.');
-        }
-
-        const user = data.data.user; // ✅ Use correct path for role and user object
-
-        // ✅ Save token and full user profile
-        localStorage.setItem('token', data.token);
+        // Save token & user
+        localStorage.setItem('token', res.data.token);
         localStorage.setItem('userProfile', JSON.stringify(user));
         localStorage.setItem('user', JSON.stringify(user));
 
-        // ✅ Role-based routing
+        // Routing
         if (user.role === 'student') {
           this.$router.push('/student-dashboard');
         } else if (user.role === 'warden') {
           this.$router.push('/warden-dashboard');
         } else {
-          alert('Role not recognized. Please contact admin.');
+          alert('Role not recognized');
         }
 
       } catch (error) {
-        console.error('Login Error:', error);
-        alert(error.message || 'User not found. Please sign up first.');
+        console.error(error.response?.data || error.message);
+        alert(error.response?.data?.message || "Login failed ❌");
       }
     },
     selectRole(role) {

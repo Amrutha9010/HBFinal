@@ -149,6 +149,7 @@
 import Navbar_Student from '../../../../components/Navbar_Student.vue';
 import Footer from '@/components/Footer.vue';
 import axios from 'axios';
+import { API_URL } from "@/config";
 
 export default {
   name: 'RoomApplication',
@@ -217,7 +218,7 @@ export default {
           formData.append('collegeId', this.form.collegeId);
 
         const res = await axios.post(
-          'http://localhost:5000/api/v1/room-application',
+          `${API_URL}/api/v1/room-application`,
           formData,
           {
             headers: { 'Content-Type': 'multipart/form-data' },

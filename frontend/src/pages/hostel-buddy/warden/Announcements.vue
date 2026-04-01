@@ -82,6 +82,7 @@
 
 <script>
 import axios from "axios";
+import { API_URL } from "@/config";
 import Footer from '@/components/Footer.vue'
 import Navbar_Student from "../../../components/Navbar_Student.vue";
 
@@ -118,7 +119,7 @@ export default {
     async fetchAnnouncements() {
   this.loading = true;
   try {
-    const res = await axios.get("http://localhost:5000/api/announcements");
+    const res = await axios.get(`${API_URL}/api/announcements`);
 
     // ✅ Normalize backend fields to match frontend
     this.announcements = (res.data || []).map((ann) => ({

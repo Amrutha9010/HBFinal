@@ -117,6 +117,7 @@
 import Footer from "@/components/Footer.vue";
 import Navbar_Student from "../../../../components/Navbar_Student.vue";
 import jsPDF from "jspdf";
+import { API_URL } from "@/config";
 
 export default {
   name: "FeePayment",
@@ -210,7 +211,7 @@ export default {
       try {
         if (!this.student.studentId) return;
         const res = await fetch(
-          `http://localhost:5000/api/v1/payment/history?studentId=${this.student.studentId}`
+          `${API_URL}/api/v1/payment/history?studentId=${this.student.studentId}`
         );
         const data = await res.json();
         this.paymentHistory = Array.isArray(data) ? data : [];
@@ -229,7 +230,7 @@ export default {
         this.processingPayment = true;
 
         const res = await fetch(
-          "http://localhost:5000/api/v1/payment/create-order",
+          `${API_URL}/api/v1/payment/create-order`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -263,7 +264,7 @@ export default {
             console.log("Verify Payload:", verifyPayload);
 
             const verifyRes = await fetch(
-              "http://localhost:5000/api/v1/payment/verify-payment",
+              `${API_URL}/api/v1/payment/verify-payment`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

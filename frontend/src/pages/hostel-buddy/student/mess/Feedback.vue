@@ -158,6 +158,7 @@ import food5 from '@/assets/images/food5.jpeg';
 import food6 from '@/assets/images/food6.jpg';
 import Navbar_Student from '../../../../components/Navbar_Student.vue';
 import Footer from '../../../../components/Footer.vue';
+import { API_URL } from "@/config";
 
 export default {
   name: 'MessFeedback',
@@ -203,7 +204,7 @@ export default {
   methods: {
     async fetchFeedback(date) {
       try {
-        const res = await axios.get(`/api/feedback?date=${date}`)
+        const res = await axios.get(`${API_URL}/api/feedback?date=${date}`);
         if (res.data) {
           // If feedback already exists, prefill form
           this.ratings = res.data.ratings

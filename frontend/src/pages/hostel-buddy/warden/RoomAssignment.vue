@@ -160,6 +160,7 @@
 import axios from 'axios'
 import Navbar_warden from '@/components/Navbar_warden.vue'
 import Footer from '@/components/Footer.vue'
+import { API_URL } from "@/config";
 
 export default {
   name: 'RoomAssignment',
@@ -189,7 +190,7 @@ export default {
     // Existing methods remain unchanged
     async fetchPendingApplications() {
       try {
-        const res = await axios.get('http://localhost:5000/api/v1/room-application?status=Pending')
+        const res = await axios.get(`${API_URL}/api/v1/room-application?status=Pending`)
         this.applications = res.data.data
       } catch (err) {
         console.error('Error fetching applications:', err)
@@ -198,7 +199,7 @@ export default {
     
     async fetchRooms() {
       try {
-        const res = await axios.get('http://localhost:5000/api/v1/rooms')
+        const res = await axios.get(`${API_URL}/api/v1/rooms`)
         this.rooms = res.data.data
       } catch (err) {
         console.error('Error fetching rooms:', err)
@@ -208,7 +209,7 @@ export default {
     async approveApplication(applicationId) {
       try {
         const assignedRoom = this.assignedRooms[applicationId]
-        const res = await axios.put(`http://localhost:5000/api/v1/room-application/${applicationId}/approve`, {
+        const res = await axios.put(`${API_URL}/api/v1/room-application/${applicationId}/approve`, {
           assignedRoom
         })
         alert('Student approved and room assigned!')
@@ -230,7 +231,7 @@ export default {
       this.loadingRooms = true
       this.selectedApplication = application
       try {
-        const res = await axios.get(`http://localhost:5000/api/v1/room-assignment/suitable-rooms/${application._id}`)
+        const res = await axios.get(`${API_URL}/api/v1/room-assignment/suitable-rooms/${application._id}`)
         this.suitableRooms = res.data.data
         this.showRoomModal = true
       } catch (err) {

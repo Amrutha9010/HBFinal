@@ -87,6 +87,7 @@
 import Navbar_Student from '../../../../components/Navbar_Student.vue';
 import Footer from '../../../../components/Footer.vue';
 import axios from 'axios';
+import { API_URL } from '@/config';
 
 export default {
   name: 'ComplaintSystem',
@@ -144,7 +145,7 @@ export default {
     async fetchStudentComplaints() {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/v1/complaints/my', {
+        const res = await axios.get(`${API_URL}/api/v1/complaints/my`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -176,7 +177,7 @@ export default {
           formData.append('image', this.uploadedPhoto);
         }
 
-        await axios.post('http://localhost:5000/api/v1/complaints', formData, {
+        await axios.post(`${API_URL}/api/v1/complaints`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'

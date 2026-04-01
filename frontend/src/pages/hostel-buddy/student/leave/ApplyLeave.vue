@@ -117,6 +117,7 @@
 import Navbar_Student from '../../../../components/Navbar_Student.vue';
 import Footer from '../../../../components/Footer.vue';
 import axios from 'axios';
+import { API_URL } from "@/config";
 
 export default {
   name: 'LeaveApplication',
@@ -148,7 +149,7 @@ export default {
   methods: {
     fetchLeaveHistory() {
       const token = localStorage.getItem('token');
-      axios.get('http://localhost:5000/api/v1/leave/history', {
+      axios.get(`${API_URL}/api/v1/leave/history`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -180,7 +181,7 @@ export default {
         return;
       }
 
-      axios.post('http://localhost:5000/api/v1/leave/apply', {
+      axios.post(`${API_URL}/api/v1/leave/apply`, {
         studentName: this.leaveForm.studentName,
         roomNumber: this.leaveForm.roomNumber,
         startDate: this.leaveForm.fromDate,
@@ -228,7 +229,7 @@ export default {
         return;
       }
 
-      axios.delete(`http://localhost:5000/api/v1/leave/${id}`, {
+      axios.delete(`${API_URL}/api/v1/leave/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

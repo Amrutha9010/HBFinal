@@ -49,6 +49,7 @@
 import Navbar_warden from '../../../components/Navbar_warden.vue';
 import Footer from '../../../components/Footer.vue';
 import axios from 'axios';
+import { API_URL } from "@/config";
 
 export default {
   name: 'LeaveApproval',
@@ -63,7 +64,7 @@ export default {
   methods: {
     async fetchPendingLeaves() {
       try {
-        const response = await axios.get('http://localhost:5000/api/v1/leave/pending', {
+        const response = await axios.get(`${API_URL}/api/v1/leave/pending`  , {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -94,7 +95,7 @@ export default {
     async updateLeaveStatus(index, status) {
       try {
         const leaveId = this.leaveRequests[index].id;
-        await axios.put(`http://localhost:5000/api/v1/leave/${leaveId}/status`, {
+        await axios.put(`${API_URL}/api/v1/leave/${leaveId}/status`, {
           status
         }, {
           headers: {

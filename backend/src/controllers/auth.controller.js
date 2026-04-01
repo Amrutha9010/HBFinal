@@ -79,6 +79,69 @@ export const register = async (req, res, next) => {
   }
 };
 
+// ---------------- CREATE WARDEN (Admin Only) ---------------- //
+export const createWarden = async (req, res, next) => {
+  try {
+    const {
+      fullName,
+      email,
+      password,
+      confirmPassword,
+      fieldId,
+      contact,
+      dob,
+      address,
+      imageUrl
+    } = req.body;
+
+    if (!fullName || !email || !password || !confirmPassword || !fieldId || !contact)
+      return next(new AppError('All fields are required', 400));
+
+    if (password !== confirmPassword)
+      return next(new AppError('Passwords do not match', 400));
+
+    if (password.length < 8)
+      return next(new AppError('Password must be at least 8 characters', 400));
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return next(new AppError('Please provide a valid email address', 400));
+
+    const existingUser = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
+    if (existingUser)
+      return next(new AppError(`Email ${email} is already registered`, 400));
+
+    const newWarden = await User.create({
+      fullName,
+      email: email.toLowerCase(),
+      password,
+      fieldId,
+      contact,
+      role: 'warden',
+      dob,
+      address,
+      imageUrl,
+      isVerified: true
+    });
+
+    newWarden.password = undefined;
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Warden created successfully',
+      data: { user: newWarden }
+    });
+
+  } catch (err) {
+    if (err.code === 11000)
+      return next(new AppError('Email already exists', 400));
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      return next(new AppError(messages.join(', '), 400));
+    }
+    next(new AppError('Warden creation failed. Please try again.', 500));
+  }
+};
+
 // ---------------- LOGIN ---------------- //
 export const login = async (req, res, next) => {
   try {
@@ -86,7 +149,10 @@ export const login = async (req, res, next) => {
     if (!email || !password)
       return next(new AppError('Please provide email and password', 400));
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({
+      email: email.toLowerCase()
+    }).select('+password');
+    
     if (!user || !(await user.comparePassword(password)))
       return next(new AppError('Incorrect email or password', 401));
 

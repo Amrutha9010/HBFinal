@@ -58,6 +58,7 @@
 import Navbar_Student from "@/components/Navbar_Student.vue";
 import Footer from "@/components/Footer.vue";
 import axios from "axios";
+import { API_URL } from "@/config"; 
 
 export default {
   components: { Navbar_Student, Footer },
@@ -83,7 +84,7 @@ export default {
 
   async mounted() {
     try {
-      const res = await axios.get("http://localhost:5000/api/fee-structure");
+      const res = await axios.get(`${API_URL}/api/fee-structure`);
       this.feeStructures = res.data;
 
       const student = JSON.parse(localStorage.getItem("student"));

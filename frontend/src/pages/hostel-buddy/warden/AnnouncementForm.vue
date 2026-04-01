@@ -114,6 +114,7 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import Navbar_warden from '../../../components/Navbar_warden.vue'
 import Footer from '../../../components/Footer.vue'
+import { API_URL } from "@/config";
 
 /* ------------------ FORM STATE ------------------ */
 const title = ref('')
@@ -153,7 +154,7 @@ const toggleShowAll = () => {
 /* ------------------ API CALLS ------------------ */
 const fetchAnnouncements = async () => {
   try {
-    const res = await axios.get('http://localhost:5000/api/announcements')
+    const res = await axios.get(`${API_URL}/api/announcements`)
     announcements.value = res.data
   } catch (err) {
     console.error('Failed to fetch announcements', err)
@@ -176,11 +177,11 @@ const postAnnouncement = async () => {
 
   try {
     if (editingId.value) {
-      await axios.put(`http://localhost:5000/api/announcements/${editingId.value}`, newAnn)
+      await axios.put(`${API_URL}/api/announcements/${editingId.value}`, newAnn)
       alert('Announcement updated successfully!')
       editingId.value = null
     } else {
-      await axios.post('http://localhost:5000/api/announcements', newAnn, {
+      await axios.post(`${API_URL}/api/announcements`, newAnn, {
         headers: { 'Content-Type': 'application/json' }
       })
       alert('Announcement posted successfully!')
@@ -197,7 +198,7 @@ const postAnnouncement = async () => {
 const deleteAnnouncement = async (id) => {
   if (!confirm("Are you sure you want to delete this announcement?")) return
   try {
-    await axios.delete(`http://localhost:5000/api/announcements/${id}`)
+    await axios.delete(`${API_URL}/api/announcements/${id}`)
     alert('🗑 Announcement deleted')
     await fetchAnnouncements()
   } catch (err) {
@@ -250,7 +251,7 @@ const removeOldAnnouncements = async () => {
     const created = new Date(ann.createdAt)
     const diffDays = (now - created) / (1000 * 60 * 60 * 24)
     if (diffDays > THRESHOLD_DAYS) {
-      await axios.delete(`http://localhost:5000/api/announcements/${ann._id}`)
+      await axios.delete(`${API_URL}/api/announcements/${ann._id}`)
     }
   }
   await fetchAnnouncements()

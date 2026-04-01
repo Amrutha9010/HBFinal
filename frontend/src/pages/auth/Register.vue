@@ -72,6 +72,9 @@
 </template>
 
 <script>
+import {API_URL} from "@/config";
+import axios from "axios";
+
 export default {
   name: 'Register',
   data() {
@@ -189,55 +192,38 @@ export default {
 
       return valid
     },
+
     async handleRegister() {
-      if (!this.validateForm()) return
-      this.isSubmitting = true
+      if (!this.validateForm()) return;
+      this.isSubmitting = true;
 
       try {
-        const response = await fetch('/api/v1/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fullName: this.form.fullName.trim(),
-            email: this.form.email.trim().toLowerCase(),
-            fieldId: this.form.fieldId.trim(),
-            contact: this.form.contact.trim(),
-            password: this.form.password,
-            confirmPassword: this.form.confirmPassword,
-            role: this.form.role,
-            dob: this.form.dob,
-            address: this.form.address?.trim() || ''
-          }),
-          credentials: 'include'
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Registration failed')
-        }
-
-        // Store complete user data with default room assignment
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('user', JSON.stringify({
+        const res = await axios.post(`${API_URL}/api/v1/auth/register`, {
           fullName: this.form.fullName.trim(),
           email: this.form.email.trim().toLowerCase(),
           fieldId: this.form.fieldId.trim(),
           contact: this.form.contact.trim(),
+          password: this.form.password,
+          confirmPassword: this.form.confirmPassword,
           role: this.form.role,
           dob: this.form.dob,
-          address: this.form.address?.trim() || '',
-          room: 'Not Assigned' // Default value
-        }))
+          address: this.form.address?.trim() || ''
+        });
 
-        // Redirect based on role
-        this.$router.push(`/login`)
+        // Save data
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.data.user));
+
+        alert("Registered Successful");
+
+        this.$router.push('/login');
 
       } catch (err) {
-        console.error('Registration error:', err)
-        alert(err.message || 'Registration failed. Please try again.')
-      } finally {
-        this.isSubmitting = false
+  console.log("FULL ERROR:", err);
+  console.log("BACKEND ERROR:", err.response?.data);
+  alert(err.response?.data?.message || "Registration failed ❌");
+} finally {
+        this.isSubmitting = false;
       }
     }
   }

@@ -129,6 +129,7 @@
 <script>
 import axios from 'axios';
 import Navbar_warden from '../../../components/Navbar_warden.vue'
+import { API_URL } from "@/config";
 
 export default {
   components: { Navbar_warden },
@@ -172,7 +173,7 @@ export default {
   },
   methods: {
     async fetchRooms() {
-      const res = await axios.get('http://localhost:5000/api/v1/rooms');
+      const res = await axios.get(`${API_URL}/api/v1/rooms`);
       if (res.data.success) {
         this.rooms = res.data.data;
       }
@@ -207,7 +208,7 @@ export default {
       if (!bedNo) return;
 
       try {
-        const res = await axios.put(`http://localhost:5000/api/v1/rooms/assign/${roomNo}`, {
+        const res = await axios.put(`${API_URL}/api/v1/rooms/assign/${roomNo}`, {
           studentId,
           bedNo
         });

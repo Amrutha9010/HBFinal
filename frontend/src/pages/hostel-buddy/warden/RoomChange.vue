@@ -51,6 +51,7 @@
 import Navbar_warden from '@/components/Navbar_Warden.vue';
 import axios from 'axios';
 import Footer from '@/components/Footer.vue';
+import { API_URL } from "@/config";
 
 export default {
   name: 'RoomChangeApproval',
@@ -70,7 +71,7 @@ export default {
     async fetchRequests() {
       const token = localStorage.getItem('token');
       try {
-        const res = await axios.get('http://localhost:5000/api/v1/room-change/all', {
+        const res = await axios.get(`${API_URL}/api/v1/room-change/all`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         this.requests = res.data.data || res.data;
@@ -85,7 +86,7 @@ export default {
       try {
         const token = localStorage.getItem('token');
         await axios.put(
-          `http://localhost:5000/api/v1/room-change/${requestId}/status`,
+          `${API_URL}/api/v1/room-change/${requestId}/status`,
           { status },
           {
             headers: {

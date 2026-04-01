@@ -170,6 +170,7 @@
 
 <script>
 import Footer from '@/components/Footer.vue'
+import { API_URL } from "@/config";
 
 export default {
   name: 'WardenDashboard',
@@ -339,7 +340,7 @@ loadingAnnouncements: true,
     this.fetchFeeDefaulters();
     this.fetchAnnouncements();
     // Fetch pending complaints count
-  fetch('http://localhost:5000/api/v1/complaints/pending-count')
+  fetch(`${API_URL}/api/v1/complaints/pending-count`)
     .then(response => response.json())
     .then(data => {
       const pendingCard = this.metricList.find(metric => metric.title === 'Pending Complaints');
@@ -354,7 +355,7 @@ loadingAnnouncements: true,
   methods: {
     async fetchAnnouncements() {
       try {
-        const res = await fetch("http://localhost:5000/api/announcements");
+        const res = await fetch(`${API_URL}/api/announcements`);
         const data = await res.json();
         this.announcements = data || [];
       } catch (err) {
@@ -365,7 +366,7 @@ loadingAnnouncements: true,
     },
     async fetchTotalStudents() {
   try {
-    const res = await fetch("http://localhost:5000/api/v1/students/count");
+    const res = await fetch(`${API_URL}/api/v1/students/count`);
     const data = await res.json();
 
     const card = this.metricList.find(m => m.title === "Total Students");
@@ -377,7 +378,7 @@ loadingAnnouncements: true,
 
 async fetchVacantRooms() {
   try {
-    const res = await fetch("http://localhost:5000/api/v1/rooms/vacant-count");
+    const res = await fetch(`${API_URL}/api/v1/rooms/vacant-count`);
     const data = await res.json();
 
     const card = this.metricList.find(m => m.title === "Vacant Rooms");
@@ -389,7 +390,7 @@ async fetchVacantRooms() {
 
 async fetchFeeDefaulters() {
   try {
-    const res = await fetch("http://localhost:5000/api/v1/fees/defaulters-count");
+    const res = await fetch(`${API_URL}/api/v1/fees/defaulters-count`);
     const data = await res.json();
 
     const card = this.metricList.find(m => m.title === "Fee Defaulters");

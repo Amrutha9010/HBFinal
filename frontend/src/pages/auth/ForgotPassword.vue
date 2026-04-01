@@ -79,6 +79,7 @@
 
 <script>
 import axios from "axios";
+import {API_URL} from "@/config";
 
 export default {
   name: "ForgotPassword",
@@ -101,10 +102,10 @@ export default {
         return;
       }
       try {
-        await axios.post("/api/v1/auth/send-otp", {
+        await axios.post(`${API_URL}/api/v1/auth/send-otp`, {
           identifier: this.identifier,
         });
-        this.message = ` OTP sent to ${this.identifier}`;
+        this.message = `OTP sent successfully to ${this.identifier}`;
       } catch (error) {
         this.message = `❗ ${error.response?.data?.message || "Failed to send OTP"}`;
       }
@@ -141,7 +142,7 @@ export default {
       }
 
       try {
-        await axios.post("/api/v1/auth/verify-otp", {
+        await axios.post(`${API_URL}/api/v1/auth/verify-otp`, {
           identifier: this.identifier,
           otp: otp,
         });
@@ -176,14 +177,14 @@ export default {
       try {
         const otp = this.otpDigits.map(d => d.trim()).join("");
 
-        await axios.post("/api/v1/auth/reset-password", {
+        await axios.post(`${API_URL}/api/v1/auth/reset-password`, {
           identifier: this.identifier,
           otp,
           newPassword: this.newPassword,
           confirmPassword: this.confirmPassword,
         });
 
-        this.message = "🎉 Password reset successful!";
+        this.message = "Password reset successful!";
         this.identifier = "";
         this.otpDigits = ["", "", "", "", "", ""];
         this.newPassword = "";

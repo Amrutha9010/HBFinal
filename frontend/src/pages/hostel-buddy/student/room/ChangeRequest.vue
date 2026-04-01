@@ -124,6 +124,7 @@
 import axios from 'axios'; 
 import Navbar_Student from '../../../../components/Navbar_Student.vue';
 import Footer from '../../../../components/Footer.vue';
+import { API_URL } from "@/config";
 
 export default {
   name: 'RoomChangeRequest',
@@ -245,7 +246,7 @@ export default {
         console.log('Sending request to backend:', requestData);
         
         const response = await axios.post(
-          'http://localhost:5000/api/v1/room-change', 
+          `${API_URL}/api/v1/room-change`, 
           requestData,
           {
             headers: {
@@ -298,7 +299,7 @@ export default {
           
           alert(errorMessage);
         } else if (error.request) {
-          alert('No response from server. Please check if backend is running at http://localhost:5000');
+          alert(`No response from server. Please check if backend is running at ${API_URL}`);
         } else {
           alert(`Error: ${error.message}`);
         }
@@ -316,7 +317,7 @@ export default {
       
       try {
         console.log('Fetching request history...');
-        const res = await axios.get('http://localhost:5000/api/v1/room-change/my-requests', {
+        const res = await axios.get(`${API_URL}/api/v1/room-change/my-requests`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

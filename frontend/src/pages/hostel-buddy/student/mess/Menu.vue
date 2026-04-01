@@ -58,6 +58,7 @@
 import axios from "axios";
 import Navbar_Student from "../../../../components/Navbar_Student.vue";
 import Footer from "../../../../components/Footer.vue";
+import { API_URL } from "@/config";
 
 // ✅ Import image from assets
 import quoteImage from "@/assets/images/messQuote.png";
@@ -111,7 +112,7 @@ export default {
   methods: {
     async fetchMenuFromBackend() {
       try {
-        const res = await axios.get("http://localhost:5000/api/menu");
+        const res = await axios.get(`${API_URL}/api/menu`);
         this.backendMenu = res.data.weeklyMenu;
       } catch (err) {
         console.error("Error fetching menu", err);

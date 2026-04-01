@@ -174,6 +174,7 @@
 import Navbar_warden from '../../../components/Navbar_warden.vue';
 import Footer from '../../../components/Footer.vue';
 import axios from 'axios';
+import { API_URL } from "@/config";
 
 export default {
   components: {
@@ -297,7 +298,7 @@ export default {
     async fetchComplaints() {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/v1/complaints/all', {
+        const res = await axios.get(`${API_URL}/api/v1/complaints/all`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -377,7 +378,7 @@ export default {
         }
         
         const res = await axios.put(
-          `http://localhost:5000/api/v1/complaints/${this.selectedComplaint._id}/status`,
+          `${API_URL}/api/v1/complaints/${this.selectedComplaint._id}/status`,
           updateData,
           {
             headers: {

@@ -249,6 +249,7 @@
 <script>
 import axios from "axios";
 import Footer from "@/components/Footer.vue";
+import { API_URL } from "@/config";
 
 export default {
   name: "StudentDashboard",
@@ -312,7 +313,7 @@ export default {
     },
     async fetchRoomDetails() {
   try {
-    const res = await axios.get("http://localhost:5000/api/v1/students/me");
+    const res = await axios.get(`${API_URL}/api/v1/students/me`);
     const data = res.data;
 
     this.roomNo = data.roomNo;
@@ -326,7 +327,7 @@ async fetchComplaints() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "http://localhost:5000/api/v1/complaints/my",
+      `${API_URL}/api/v1/complaints/my`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -348,7 +349,7 @@ async fetchComplaints() {
 
 async fetchFeeStatus() {
   try {
-    const res = await axios.get("http://localhost:5000/api/v1/fees/history");
+    const res = await axios.get(`${API_URL}/api/v1/fees/history`);
     const payments = res.data;
 
     if (payments.length > 0) {
@@ -367,7 +368,7 @@ async fetchLeaves() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "http://localhost:5000/api/v1/leave/student-stats",
+      `${API_URL}/api/v1/leave/student-stats`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -383,7 +384,7 @@ async fetchLeaves() {
 },
     async fetchAnnouncements() {
       try {
-        const res = await axios.get("/api/announcements");
+        const res = await axios.get(`${API_URL}/api/announcements`);
         this.announcements = res.data || [];
       } catch (err) {
         console.error("Error fetching notices:", err);

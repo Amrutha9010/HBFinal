@@ -14,6 +14,9 @@ router.use(authController.protect, authController.restrictTo('warden'));
 // Warden Dashboard
 router.get('/warden-dashboard', wardenController.getWardenDashboard);
 
+// Create new warden
+router.post('/create-warden', authController.createWarden);
+
 // Complaint management
 router.get('/complaints', getAllComplaints); // Fetch all complaints
 router.patch('/complaints/:id', updateComplaintStatus); // Update status/assignment
