@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import Navbar_warden from '@/components/Navbar_Warden.vue';
+import Navbar_warden from '@/components/Navbar_warden.vue';
 import axios from 'axios';
 import Footer from '@/components/Footer.vue';
 import { API_URL } from "@/config";
