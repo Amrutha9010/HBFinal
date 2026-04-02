@@ -188,7 +188,7 @@ h2{
   font-size: 17px;
 }
 
-/* ✅ Image on side */
+/* Image on side */
 .image-container {
   flex: 1;
   min-width: 300px;
