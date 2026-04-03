@@ -3,6 +3,7 @@ import multer from 'multer';
 import { storage } from '../config/cloudinary.js';
 import RoomApplication from '../models/roomApplicationModel.js';
 import Student from '../models/Student.model.js';
+import User from '../models/User.model.js';
 import Room from '../models/roomModel.js';
 const router = express.Router();
 const upload = multer({ storage });
@@ -111,16 +112,17 @@ router.put('/:id/approve', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Application not found' });
     }
 
-    // Check if student already exists
-    const existingStudent = await Student.findOne({ rollNumber: application.rollNumber });
-    if (!existingStudent) {
-      const newStudent = new Student({
+    // Check if student already exists in Student collection
+    let studentRecord = await Student.findOne({ rollNumber: application.rollNumber });
+
+    if (!studentRecord) {
+      studentRecord = new Student({
         fullName: application.fullName,
         rollNumber: application.rollNumber,
         roomNo: assignedRoom,
-        block: room.block,  // Get from room document instead of splitting
-        floor: room.floor,  // Get from room document instead of splitting
-        bedNo: '1', // Default bed number
+        block: room.block,
+        floor: room.floor,
+        bedNo: '1',
         acType: application.acType,
         joinDate: application.joinDate,
         branchYear: application.branchYear,
@@ -135,12 +137,31 @@ router.put('/:id/approve', async (req, res) => {
         collegeId: application.collegeId,
       });
 
-      const savedStudent = await newStudent.save();
-      
-      // Update room occupants
-      room.occupants.push(savedStudent._id);
-      await room.save();
+      await studentRecord.save();
+    } else {
+      // Update assignment details for existing student record
+      studentRecord.roomNo = assignedRoom;
+      studentRecord.block = room.block;
+      studentRecord.floor = room.floor;
+      studentRecord.bedNo = '1';
+      studentRecord.joinDate = application.joinDate || new Date();
+      studentRecord.acType = application.acType;
+      studentRecord.sharingType = application.sharingType;
+      await studentRecord.save();
     }
+
+    // Update user record so auth/profile matches assignment immediately
+    await User.findOneAndUpdate(
+      { fieldId: application.rollNumber },
+      { roomNumber: assignedRoom },
+      { new: true }
+    );
+
+    // Update room occupants
+    if (!room.occupants.includes(studentRecord._id)) {
+      room.occupants.push(studentRecord._id);
+    }
+    await room.save();
 
     res.status(200).json({ 
       success: true, 

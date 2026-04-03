@@ -436,6 +436,10 @@ export default {
     async fetchProfile() {
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          console.warn('No auth token found; not fetching profile.');
+          return;
+        }
 
         const res = await axios.get(`${API_URL}/api/v1/auth/profile`, {
           headers: {
@@ -443,22 +447,22 @@ export default {
           }
         });
 
-        const student = res.data.student;
+        const user = res.data.data?.user || res.data.user;
 
-        if (student && student.roomNo && student.block) {
-          this.roomNo = student.roomNo;
-          this.block = student.block;
-          this.sharingType = student.sharingType;
-          this.acType = student.acType;
+        if (user) {
+          this.roomNo = user.roomNumber || user.roomNo || 'Not Assigned';
+          this.sharingType = user.sharingType ? `${user.sharingType} Sharing` : 'Not Assigned';
+          this.acType = user.acType || '';
+          this.block = user.block || '';
         } else {
-          this.roomNo = '';
+          this.roomNo = 'Not Assigned';
           this.block = '';
-          this.sharingType = '';
+          this.sharingType = 'Not Assigned';
           this.acType = '';
         }
 
       } catch (err) {
-        console.error("Profile fetch error", err);
+        console.error("Profile fetch error", err.response || err);
       }
     },
 

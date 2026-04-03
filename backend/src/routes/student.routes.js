@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect, restrictTo } from '../controllers/auth.controller.js';
 import Student from '../models/Student.model.js';
+import User from '../models/User.model.js';
 
 const router = express.Router();
 
@@ -23,10 +24,21 @@ router.get('/me', async (req, res) => {
       return res.status(400).json({ message: 'Cannot determine student identity from token' });
     }
 
-    const student = await Student.findOne({ rollNumber: req.user.fieldId }).select('-__v');
+    let student = await Student.findOne({ rollNumber: req.user.fieldId }).select('-__v');
 
     if (!student) {
-      return res.status(404).json({ message: 'Student record not found' });
+      // fallback on User data if Student record not yet created
+      const user = await User.findOne({ fieldId: req.user.fieldId }).select('-password -__v');
+
+      if (!user) {
+        return res.status(404).json({ message: 'Student record not found' });
+      }
+
+      return res.status(200).json({
+        ...user.toObject(),
+        roomNo: user.roomNumber || 'Not Assigned',
+        sharingType: user.sharingType || 'Not Assigned'
+      });
     }
 
     return res.status(200).json(student);
