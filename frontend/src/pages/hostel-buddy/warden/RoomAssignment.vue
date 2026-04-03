@@ -208,24 +208,11 @@ export default {
           return;
         }
 
-        const res = await axios.post(`${API_URL}/api/v1/room-assignment/assign`, {
+        const response = await axios.post(`${API_URL}/api/v1/room-assignment/assign`, {
           applicationId,
           roomNo: selectedRoom.roomNo,
           block: selectedRoom.block,
           floor: selectedRoom.floor
-        });
-
-        if (!availableBed) {
-          alert("No beds available in this room!");
-          return;
-        }
-
-        const res = await axios.post(`${API_URL}/api/v1/room-assignment/assign`, {
-          applicationId,
-          roomNo: selectedRoom.roomNo,
-          block: selectedRoom.block,
-          floor: selectedRoom.floor,
-          acType: selectedRoom.acType,
         });
 
         alert("Student assigned successfully!");
