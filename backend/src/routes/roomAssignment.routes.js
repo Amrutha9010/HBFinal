@@ -75,7 +75,6 @@ router.post("/assign", async (req, res) => {
       roomNo,
       block,
       floor,
-      bedNo,
       joinDate: new Date(),
     });
 
