@@ -391,7 +391,13 @@ export default {
 
     async fetchFeeStatus() {
       try {
-        const res = await axios.get(`${API_URL}/api/v1/fees/history`);
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(`${API_URL}/api/v1/fees/history`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         const payments = res.data;
 
         if (payments.length > 0) {
@@ -431,7 +437,7 @@ export default {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get(`${API_URL}/api/auth/profile`, {
+        const res = await axios.get(`${API_URL}/api/v1/auth/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

@@ -208,14 +208,12 @@ export default {
           return;
         }
 
-        // 🔥 Find first available bed automatically
-        const roomDetails = await axios.get(`${API_URL}/api/v1/rooms`);
-
-        const fullRoom = roomDetails.data.data.find(
-          r => r.roomNo === selectedRoom.roomNo && r.block === selectedRoom.block
-        );
-
-        const availableBed = fullRoom.beds.find(b => b.occupied === false);
+        const res = await axios.post(`${API_URL}/api/v1/room-assignment/assign`, {
+          applicationId,
+          roomNo: selectedRoom.roomNo,
+          block: selectedRoom.block,
+          floor: selectedRoom.floor
+        });
 
         if (!availableBed) {
           alert("No beds available in this room!");
