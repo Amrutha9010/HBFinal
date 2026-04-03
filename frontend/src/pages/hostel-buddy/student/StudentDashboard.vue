@@ -92,13 +92,13 @@
           <div class="metric-content">
             <h3>Room No</h3>
             <p class="metric-value">
-              {{ roomNo ? `${block}-${roomNo}` : 'Not Assigned' }}
+              {{ roomNo && block ? `${block}-${roomNo}` : 'Not Assigned' }}
             </p>
             <p class="metric-change">
               <i class="fas fa-bed"></i> {{ sharingType || 'Not Assigned' }}
             </p>
             <p class="metric-change">
-              {{ acType }} • {{ sharingType }}
+              {{ acType || 'N/A' }} • {{ sharingType || 'Not Assigned' }}
             </p>
           </div>
           <div class="metric-icon"><i class="fas fa-home"></i></div>
@@ -301,7 +301,6 @@ export default {
     }
 
     this.fetchAnnouncements();
-    this.fetchRoomDetails();
     this.fetchFeeStatus();
     this.fetchLeaves();
     this.fetchComplaints();
@@ -440,12 +439,16 @@ export default {
 
         const student = res.data.student;
 
-        if (student) {
+        if (student && student.roomNo) {
           this.roomNo = student.roomNo;
-          this.sharingType = student.sharingType;
           this.block = student.block;
-          this.bedNo = student.bedNo;
+          this.sharingType = student.sharingType;
           this.acType = student.acType;
+        } else {
+          this.roomNo = '';
+          this.block = '';
+          this.sharingType = '';
+          this.acType = '';
         }
 
       } catch (err) {
