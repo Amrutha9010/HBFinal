@@ -436,29 +436,22 @@ export default {
     async fetchProfile() {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          console.warn('No auth token found; not fetching profile.');
-          return;
-        }
 
-        const res = await axios.get(`${API_URL}/api/v1/auth/profile`, {
+        const res = await axios.get(`${API_URL}/api/v1/students/me`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
 
-        const user = res.data.data?.user || res.data.user;
+        const student = res.data.data || res.data;
 
-        if (user) {
-          this.roomNo = user.roomNumber || user.roomNo || 'Not Assigned';
-          this.sharingType = user.sharingType ? `${user.sharingType} Sharing` : 'Not Assigned';
-          this.acType = user.acType || '';
-          this.block = user.block || '';
-        } else {
-          this.roomNo = 'Not Assigned';
-          this.block = '';
-          this.sharingType = 'Not Assigned';
-          this.acType = '';
+        if (student) {
+          this.roomNo = student.roomNo || '';
+          this.block = student.block || '';
+          this.sharingType = student.sharingType
+            ? `${student.sharingType} Sharing`
+            : '';
+          this.acType = student.acType || '';
         }
 
       } catch (err) {
