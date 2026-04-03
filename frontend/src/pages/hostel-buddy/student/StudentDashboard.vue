@@ -339,30 +339,30 @@ export default {
       this.showMobileMenu = false;
     },
 
-    async fetchRoomDetails() {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.warn('No auth token found; not fetching room details.');
-          return;
-        }
+    // async fetchRoomDetails() {
+    //   try {
+    //     const token = localStorage.getItem('token');
+    //     if (!token) {
+    //       console.warn('No auth token found; not fetching room details.');
+    //       return;
+    //     }
 
-        const res = await axios.get(`${API_URL}/api/v1/students/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+    //     const res = await axios.get(`${API_URL}/api/v1/students/me`, {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`
+    //       }
+    //     });
 
-        const data = res.data;
-        this.roomNo = data.roomNo || 'Not Assigned';
-        this.sharingType = data.sharingType
-          ? `${data.sharingType} Sharing`
-          : 'Not Assigned';
+    //     const data = res.data;
+    //     this.roomNo = data.roomNo || 'Not Assigned';
+    //     this.sharingType = data.sharingType
+    //       ? `${data.sharingType} Sharing`
+    //       : 'Not Assigned';
 
-      } catch (err) {
-        console.error('Room fetch error', err.response || err);
-      }
-    },
+    //   } catch (err) {
+    //     console.error('Room fetch error', err.response || err);
+    //   }
+    // },
 
     async fetchComplaints() {
       try {
@@ -445,7 +445,7 @@ export default {
 
         const student = res.data.student;
 
-        if (student && student.roomNo) {
+        if (student && student.roomNo && student.block) {
           this.roomNo = student.roomNo;
           this.block = student.block;
           this.sharingType = student.sharingType;

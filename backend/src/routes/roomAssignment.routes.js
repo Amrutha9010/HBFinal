@@ -55,6 +55,8 @@ router.post("/assign", async (req, res) => {
       block,
       floor: Number(floor),
     });
+    console.log("Incoming:", { roomNo, block, floor });
+    console.log("Converted floor:", Number(floor));
     if (!room) return res.status(404).json({ error: "Room not found" });
     console.log("Room found:", room);
     const newStudent = new Student({
