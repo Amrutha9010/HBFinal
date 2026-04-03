@@ -209,12 +209,12 @@ export default {
         }
 
         // Call the correct backend endpoint for approval
-        const response = await axios.put(
-          `${API_URL}/api/v1/room-application/${applicationId}/approve`,
-          {
-            assignedRoom: selectedRoom.roomNo
-          }
-        );
+        await axios.post(`${API_URL}/api/v1/room-assignment/assign`, {
+          applicationId,
+          roomNo: selectedRoom.roomNo,
+          block: selectedRoom.block,
+          floor: selectedRoom.floor
+        });
 
         alert("Student approved and room assigned successfully!");
         this.fetchPendingApplications();
