@@ -25,6 +25,8 @@ export const protect = async (req, res, next) => {
     req.user = {
       _id: user._id,
       role: user.role,
+      fieldId: user.fieldId,
+      roomNumber: user.roomNumber,
       name: user.fullName || user.name, // Support both fullName or name
       email: user.email
     };

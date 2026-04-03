@@ -312,16 +312,26 @@ export default {
       this.showMobileMenu = false;
     },
     async fetchRoomDetails() {
-  try {
-    const res = await axios.get(`${API_URL}/api/v1/students/me`);
-    const data = res.data;
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.warn('No auth token found; not fetching room details.');
+          return;
+        }
 
-    this.roomNo = data.roomNo;
-    this.sharingType = data.sharingType + " Sharing";
-  } catch (err) {
-    console.error("Room fetch error", err);
-  }
-},
+        const res = await axios.get(`${API_URL}/api/v1/students/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = res.data;
+        this.roomNo = data.roomNo || 'Not Assigned';
+        this.sharingType = data.sharingType ? `${data.sharingType} Sharing` : 'Not Assigned';
+      } catch (err) {
+        console.error('Room fetch error', err.response || err);
+      }
+    },
 async fetchComplaints() {
   try {
     const token = localStorage.getItem("token");
