@@ -20,7 +20,6 @@ const studentSchema = new mongoose.Schema({
   roomNo: { type: String, required: true },
   block: { type: String, required: true },
   floor: { type: String, required: true },
-  bedNo: { type: String, required: true },
   joinDate: { type: Date, required: true }
 }, { timestamps: true });
 

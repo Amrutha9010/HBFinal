@@ -4,6 +4,7 @@ import AppError from '../utils/appError.js';
 import sendEmail from '../utils/sendEmail.js';
 import crypto from 'crypto';
 import asyncHandler from '../utils/asyncHandler.js';
+import Student from '../models/Student.model.js';
 
 // JWT token helper
 const signToken = (id) => {
@@ -172,13 +173,17 @@ export const login = async (req, res, next) => {
 };
 
 // ---------------- GET PROFILE ---------------- //
+
 export const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).select('-password');
   if (!user) throw new AppError('User not found', 404);
-  
+
+  const student = await Student.findOne({ rollNumber: user.fieldId });
+
   res.status(200).json({
     status: 'success',
-    user
+    user,
+    student
   });
 });
 

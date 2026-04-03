@@ -84,13 +84,10 @@
             </div>
 
             <div class="assignment-controls">
-              <button 
-                @click="fetchSuitableRooms(application)" 
-                class="view-rooms-btn"
-              >
+              <button @click="fetchSuitableRooms(application)" class="view-rooms-btn">
                 <i class="fas fa-search"></i> Find Suitable Rooms
               </button>
-              
+
               <!-- <div class="room-select">
                 <label>Assign Room:</label>
                 <select 
@@ -108,11 +105,8 @@
                 </select>
               </div>
                -->
-              <button 
-                @click="approveApplication(application._id)" 
-                :disabled="!assignedRooms[application._id]"
-                class="assign-btn"
-              >
+              <button @click="approveApplication(application._id)" :disabled="!assignedRooms[application._id]"
+                class="assign-btn">
                 <i class="fas fa-check"></i> Approve & Assign
               </button>
             </div>
@@ -124,27 +118,26 @@
           <div class="modal-content">
             <button class="close-btn" @click="showRoomModal = false">&times;</button>
             <h3>Available Rooms for {{ selectedApplication.fullName }}</h3>
-            
+
             <div v-if="loadingRooms" class="loading-rooms">
               <i class="fas fa-spinner fa-spin"></i> Loading suitable rooms...
             </div>
-            
+
             <div v-else>
               <div v-if="suitableRooms.length === 0" class="no-rooms">
                 No suitable rooms found matching the student's preferences
               </div>
-              
+
               <div v-for="room in suitableRooms" :key="room.roomNo" class="room-option">
                 <div class="room-info">
-                  <strong>{{ room.roomNo }}</strong> ({{ room.block }}, {{ room.floor }}, {{ room.acType }})
+                  <strong>{{ room.roomNo }}</strong>
+                  ({{ room.block }} Block, Floor {{ room.floor }})
+                  - {{ room.acType }} Room
                   <div class="availability">
                     Available beds: {{ room.availableBeds }}/{{ room.capacity }}
                   </div>
                 </div>
-                <button 
-                  @click="selectRoom(room.roomNo)" 
-                  class="select-room-btn"
-                >
+                <button @click="selectRoom(room)" class="select-room-btn">
                   Select This Room
                 </button>
               </div>
@@ -196,7 +189,7 @@ export default {
         console.error('Error fetching applications:', err)
       }
     },
-    
+
     async fetchRooms() {
       try {
         const res = await axios.get(`${API_URL}/api/v1/rooms`)
@@ -205,27 +198,53 @@ export default {
         console.error('Error fetching rooms:', err)
       }
     },
-    
+
     async approveApplication(applicationId) {
       try {
-        const assignedRoom = this.assignedRooms[applicationId]
-        const res = await axios.put(`${API_URL}/api/v1/room-application/${applicationId}/approve`, {
-          assignedRoom
-        })
-        alert('Student approved and room assigned!')
-        this.fetchPendingApplications()
-        this.fetchRooms()
+        const selectedRoom = this.assignedRooms[applicationId];
+
+        if (!selectedRoom) {
+          alert("Please select a room");
+          return;
+        }
+
+        // 🔥 Find first available bed automatically
+        const roomDetails = await axios.get(`${API_URL}/api/v1/rooms`);
+
+        const fullRoom = roomDetails.data.data.find(
+          r => r.roomNo === selectedRoom.roomNo && r.block === selectedRoom.block
+        );
+
+        const availableBed = fullRoom.beds.find(b => b.occupied === false);
+
+        if (!availableBed) {
+          alert("No beds available in this room!");
+          return;
+        }
+
+        const res = await axios.post(`${API_URL}/api/v1/room-assignment/assign`, {
+          applicationId,
+          roomNo: selectedRoom.roomNo,
+          block: selectedRoom.block,
+          floor: selectedRoom.floor,
+          acType: selectedRoom.acType,
+        });
+
+        alert("Student assigned successfully!");
+
+        this.fetchPendingApplications();
+
       } catch (err) {
-        console.error('Approval error:', err)
-        alert('Failed to approve student.')
+        console.error(err);
+        alert("Assignment failed");
       }
     },
-    
+
     openImage(url) {
       this.currentImage = url
       this.showImageModal = true
     },
-    
+
     // New methods for room selection
     async fetchSuitableRooms(application) {
       this.loadingRooms = true
@@ -240,9 +259,9 @@ export default {
         this.loadingRooms = false
       }
     },
-    
-    selectRoom(roomNo) {
-      this.assignedRooms[this.selectedApplication._id] = roomNo
+
+    selectRoom(room) {
+      this.assignedRooms[this.selectedApplication._id] = room
       this.showRoomModal = false
     }
   }
@@ -257,7 +276,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,7 +291,7 @@ export default {
   max-width: 600px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .close-btn {
@@ -355,6 +374,7 @@ export default {
 .view-rooms-btn i {
   font-size: 0.9rem;
 }
+
 .room-assignment-page {
   display: flex;
   flex-direction: column;
@@ -372,7 +392,7 @@ export default {
   max-width: 1200px;
   margin: 0 100px;
   padding: 0 20px;
-  
+
 }
 
 .page-header {
@@ -393,7 +413,7 @@ export default {
   padding: 40px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .no-applications i {
@@ -417,7 +437,7 @@ export default {
 .application-card {
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -568,7 +588,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -591,25 +611,25 @@ export default {
   .applications-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .detail-row {
     flex-direction: column;
   }
-  
+
   .detail-item {
     margin-bottom: 5px;
   }
-  
+
   .assignment-controls {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .room-select {
     width: 100%;
     margin-right: 0;
   }
-  
+
   .assign-btn {
     width: 100%;
     justify-content: center;
