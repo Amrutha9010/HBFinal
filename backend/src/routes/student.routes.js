@@ -24,7 +24,7 @@ router.get('/me', async (req, res) => {
       return res.status(400).json({ message: 'Cannot determine student identity from token' });
     }
 
-    let student = await Student.findOne({ rollNumber: req.user.fieldId }).select('-__v');
+    let student = await Student.findOne({ fieldId: req.user.fieldId }).select('-__v');
 
     if (!student) {
       // fallback on User data if Student record not yet created

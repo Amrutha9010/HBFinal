@@ -62,6 +62,7 @@ router.post("/assign", async (req, res) => {
     const newStudent = new Student({
       fullName: application.fullName,
       rollNumber: application.rollNumber,
+      fieldId: application.rollNumber, 
       branchYear: application.branchYear,
       gender: application.gender,
       phone: application.phone,
