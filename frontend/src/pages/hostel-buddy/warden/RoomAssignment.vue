@@ -204,24 +204,25 @@ export default {
         const selectedRoom = this.assignedRooms[applicationId];
 
         if (!selectedRoom) {
-          alert("Please select a room");
+          alert("Please select a room first");
           return;
         }
 
-        const response = await axios.post(`${API_URL}/api/v1/room-assignment/assign`, {
-          applicationId,
-          roomNo: selectedRoom.roomNo,
-          block: selectedRoom.block,
-          floor: selectedRoom.floor
-        });
+        // Call the correct backend endpoint for approval
+        const response = await axios.put(
+          `${API_URL}/api/v1/room-application/${applicationId}/approve`,
+          {
+            assignedRoom: selectedRoom.roomNo
+          }
+        );
 
-        alert("Student assigned successfully!");
-
+        alert("Student approved and room assigned successfully!");
         this.fetchPendingApplications();
+        this.showRoomModal = false;
 
       } catch (err) {
         console.error("FULL ERROR:", err.response?.data || err);
-        alert(err.response?.data?.error || "Assignment failed");
+        alert(err.response?.data?.message || err.response?.data?.error || "Assignment failed");
       }
     },
 
