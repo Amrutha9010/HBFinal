@@ -50,9 +50,13 @@ router.post("/assign", async (req, res) => {
     if (!application)
       return res.status(404).json({ error: "Application not found" });
 
-    const room = await Room.findOne({ roomNo, block, floor });
+    const room = await Room.findOne({
+      roomNo,
+      block,
+      floor: Number(floor),
+    });
     if (!room) return res.status(404).json({ error: "Room not found" });
-
+    console.log("Room found:", room);
     const newStudent = new Student({
       fullName: application.fullName,
       rollNumber: application.rollNumber,

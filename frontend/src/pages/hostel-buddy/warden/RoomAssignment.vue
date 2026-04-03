@@ -220,8 +220,8 @@ export default {
         this.fetchPendingApplications();
 
       } catch (err) {
-        console.error(err);
-        alert("Assignment failed");
+        console.error("FULL ERROR:", err.response?.data || err);
+        alert(err.response?.data?.error || "Assignment failed");
       }
     },
 
