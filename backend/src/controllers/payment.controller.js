@@ -11,50 +11,42 @@ const razorpayInstance = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-router.get('/defaulters-count', async (req, res) => {
+export const getStudentFee = async (req, res) => {
   try {
-    //  1. Get real students from rooms
-    const rooms = await Room.find();
+    const { studentId } = req.query;
 
-    let studentIds = [];
+    const student = await Student.findOne({ fieldId: studentId });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
-    rooms.forEach(room => {
-      room.occupants.forEach(o => {
-        if (o.studentId) {
-          studentIds.push(o.studentId.toString());
-        }
-      });
+    const map = {
+      "1": "single",
+      "2": "double",
+      "3": "triple",
+      "4": "four-sharing",
+      "5": "five-sharing"
+    };
+
+    const fee = await FeeStructure.findOne({
+      roomType: map[student.sharingType],
+      acType: student.acType.toLowerCase(),
     });
 
-    // remove duplicates (important)
-    studentIds = [...new Set(studentIds)];
+    if (!fee) {
+      return res.status(404).json({ message: "Fee structure not found" });
+    }
 
-    //  2. Get payments
-    const payments = await Payment.find();
-
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-
-    const paidStudents = payments
-      .filter(p => {
-        const d = new Date(p.createdAt);
-        return d.getMonth() === currentMonth &&
-               d.getFullYear() === currentYear;
-      })
-      .map(p => p.studentId);
-
-    // 3. Defaulters = allocated - paid
-    const defaulters = studentIds.filter(
-      id => !paidStudents.includes(id)
-    );
-
-    res.json({ count: defaulters.length });
+    res.json({
+      amount: fee.monthlyFee,
+      dueDate: fee.dueDate,
+    });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error fetching defaulters' });
+    res.status(500).json({ message: "Error fetching fee" });
   }
-});
+};
 
 //  Create order
 export const createOrder = async (req, res) => {
@@ -106,7 +98,7 @@ export const verifyPayment = async (req, res) => {
 
     //  Debugging missing values
     if (!studentName || !studentId || !email) {
-      console.error(" Missing required student fields!", {
+      console.error("❌ Missing required student fields!", {
         studentName,
         studentId,
         email,
