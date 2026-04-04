@@ -6,6 +6,9 @@ import Room from "../models/roomModel.js";
 
 const router = express.Router();
 
+//  REMOVE OLD RECORD (if exists)
+await Student.deleteMany({ fieldId: application.rollNumber });
+
 // Get suitable rooms for an application
 router.get("/suitable-rooms/:applicationId", async (req, res) => {
   try {

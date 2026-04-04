@@ -1,3 +1,4 @@
+// PaymentStatus.js
 import mongoose from 'mongoose';
 
 const paymentStatusSchema = new mongoose.Schema({
