@@ -1,3 +1,4 @@
+// FeeDetails.vue
 <template>
   <div :class="['fee-details', isDark ? 'dark-theme' : 'light-theme']">
     <Navbar_Student />

@@ -1,3 +1,4 @@
+// FeeManagement.vue
 <template>
   <Navbar_warden />
   <div class="fee-management-container">
@@ -130,7 +131,15 @@ export default {
   methods: {
     async saveFeeSettings() {
       try {
-        await axios.post(`${API_URL}/api/fee-structure`, this.feeData);
+        const payload = {
+          ...this.feeData,
+          monthlyFee: Number(this.feeData.monthlyFee),
+          dueDate: Number(this.feeData.dueDate),
+          lateFeePerDay: Number(this.feeData.lateFeePerDay),
+          maxLateDays: Number(this.feeData.maxLateDays),
+        };
+
+        await axios.post(`${API_URL}/api/fee-structure`, payload);
         this.fetchCurrentFees();
         this.resetForm();
         alert('Fee settings saved successfully!');
@@ -179,7 +188,15 @@ export default {
     },
     async updateFee() {
       try {
-        await axios.put(`${API_URL}/api/fee-structure/${this.editingId}`, this.feeData);
+        const payload = {
+          ...this.feeData,
+          monthlyFee: Number(this.feeData.monthlyFee),
+          dueDate: Number(this.feeData.dueDate),
+          lateFeePerDay: Number(this.feeData.lateFeePerDay),
+          maxLateDays: Number(this.feeData.maxLateDays),
+        };
+
+        await axios.put(`${API_URL}/api/fee-structure/${this.editingId}`, payload); 
         this.fetchCurrentFees();
         this.resetForm();
         alert('Fee structure updated successfully!');
@@ -203,7 +220,7 @@ export default {
 
 
 <style scoped>
-  .action-btn {
+.action-btn {
   margin: 0 5px;
   padding: 5px 10px;
   border: none;
@@ -251,7 +268,7 @@ export default {
   font-size: 18px;
   text-align: center;
 }
- 
+
 .fee-management-form {
   display: flex;
   gap: 30px;
@@ -265,13 +282,15 @@ export default {
   background: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   border: 2px solid #1BBC9B;
 }
-.current-fees h2{
+
+.current-fees h2 {
   text-align: center;
   font-size: 35px;
 }
+
 .form-section h2 {
   color: #1BBC9B;
   margin-top: 0;
@@ -319,7 +338,7 @@ export default {
 }
 
 .save-btn {
-  border:2px solid #1BBC9B;
+  border: 2px solid #1BBC9B;
   background-color: white;
   font-size: 20px;
   color: #1BBC9B;
@@ -327,20 +346,20 @@ export default {
 
 .save-btn:hover {
   background-color: #16a085;
-  color:white;
+  color: white;
 }
 
 .reset-btn {
   background-color: white;
-  color:red;
-  width:150px;
+  color: red;
+  width: 150px;
   border: 2px solid red;
   font-size: 20px;
 }
 
 .reset-btn:hover {
   background-color: red;
-  color:white;
+  color: white;
 }
 
 /* Current Fees Table */
@@ -397,25 +416,25 @@ export default {
   .fee-management-form {
     flex-direction: column;
   }
-  
+
   .table-header {
     display: none;
   }
-  
+
   .table-row {
     flex-direction: column;
     border-bottom: 2px solid #eee;
   }
-  
+
   .table-row div {
     padding: 5px 0;
     border-bottom: 1px solid #f5f5f5;
   }
-  
+
   .table-row div:last-child {
     border-bottom: none;
   }
-  
+
   .table-row div::before {
     content: attr(data-label);
     font-weight: bold;
