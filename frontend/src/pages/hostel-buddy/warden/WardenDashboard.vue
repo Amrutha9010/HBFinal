@@ -41,7 +41,7 @@
             <i class="fas fa-bullhorn"></i>
             <span>Announcements</span>
           </div>
-         <div class="mobile-menu-item" @click="navigateTo('/room-assignment')">
+          <div class="mobile-menu-item" @click="navigateTo('/room-assignment')">
             <i class="fas fa-home"></i>
             <span>Room Allocation</span>
           </div>
@@ -49,7 +49,7 @@
             <i class="fas fa-exchange-alt"></i>
             <span>Change Rooms</span>
           </div>
-           <div class="mobile-menu-item" @click="navigateTo('/hostel-occupancy')">
+          <div class="mobile-menu-item" @click="navigateTo('/hostel-occupancy')">
             <i class="fas fa-bed"></i>
             <span>Hostel Occupancy</span>
           </div>
@@ -57,13 +57,13 @@
           <div class="mobile-menu-item" @click="navigateTo('/leave-approval')">
             <i class="fas fa-calendar-check"></i>
             <span>Leave Approval</span>
-          </div> 
+          </div>
           <div class="mobile-menu-item" @click="navigateTo('/complaint-management')">
             <i class="fas fa-tools"></i>
             <span>View Complaints</span>
           </div>
-          
-          
+
+
 
           <div class="mobile-menu-item" @click="navigateTo('/menu-update')">
             <i class="fas fa-utensils"></i>
@@ -73,18 +73,18 @@
             <i class="fas fa-rupee-sign"></i>
             <span>Fee Management</span>
           </div>
-          
+
           <!-- <div class="mobile-menu-item" @click="navigateTo('/payment-tracking')">
             <i class="fas fa-file-invoice"></i>
             <span>Fee Reports</span>
           </div> -->
-         
-           
+
+
           <!-- <div class="mobile-menu-item" @click="navigateTo('/student-management')">
             <i class="fas fa-user-graduate"></i>
             <span>Student Details</span>
           </div> -->
-         
+
           <div class="mobile-menu-item" @click="navigateTo('/rules')">
             <i class="fas fa-clipboard-list"></i>
             <span>Rules</span>
@@ -113,46 +113,43 @@
 
       <!-- Recent Activity Section -->
       <!-- 🔥 DYNAMIC ANNOUNCEMENTS -->
-<div class="dashboard-section">
-  <h2>Recent Announcements</h2>
+      <div class="dashboard-section">
+        <h2>Recent Announcements</h2>
 
-  <div v-if="loadingAnnouncements" class="activity-list">
-    <p>Loading announcements...</p>
-  </div>
-
-  <div v-else>
-    <div v-if="announcements.length === 0" class="activity-list">
-      <p>No announcements yet</p>
-    </div>
-
-    <div v-else class="activity-list">
-      <div 
-        v-for="ann in announcements.slice(0,3)" 
-        :key="ann._id" 
-        class="activity-item"
-      >
-        <div class="activity-icon announcement">
-          <i class="fas fa-bullhorn"></i>
+        <div v-if="loadingAnnouncements" class="activity-list">
+          <p>Loading announcements...</p>
         </div>
 
-        <div class="activity-content">
-          <p style="font-weight: 600;">{{ ann.title }}</p>
-          <p>{{ ann.message }}</p>
+        <div v-else>
+          <div v-if="announcements.length === 0" class="activity-list">
+            <p>No announcements yet</p>
+          </div>
 
-          <small>
-            Posted by {{ ann.createdBy }} • {{ formatTime(ann.createdAt) }}
-          </small>
+          <div v-else class="activity-list">
+            <div v-for="ann in announcements.slice(0, 3)" :key="ann._id" class="activity-item">
+              <div class="activity-icon announcement">
+                <i class="fas fa-bullhorn"></i>
+              </div>
+
+              <div class="activity-content">
+                <p style="font-weight: 600;">{{ ann.title }}</p>
+                <p>{{ ann.message }}</p>
+
+                <small>
+                  Posted by {{ ann.createdBy }} • {{ formatTime(ann.createdAt) }}
+                </small>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
 
       <!-- Quick Access Cards - All menu items as cards -->
       <div class="dashboard-section">
         <h2>Quick Access</h2>
         <div class="quick-access-grid">
-          <div class="quick-access-card" v-for="(action, index) in quickActions" :key="index" @click="navigateTo(action.route)">
+          <div class="quick-access-card" v-for="(action, index) in quickActions" :key="index"
+            @click="navigateTo(action.route)">
             <div class="action-icon" :style="{ backgroundColor: action.bgColor }">
               <i :class="action.icon"></i>
             </div>
@@ -184,7 +181,7 @@ export default {
       wardenName: '',
       showProfileDropdown: false,
       announcements: [],
-loadingAnnouncements: true,
+      loadingAnnouncements: true,
 
       metricList: [
         {
@@ -201,11 +198,11 @@ loadingAnnouncements: true,
           icon: 'fas fa-bed',
           metricIcon: 'fas fa-home'
         },
-         {
-    title: 'Pending Complaints',
-    value: 0, // will be updated via API
-    metricIcon: 'fas fa-clipboard-list'
-  },
+        {
+          title: 'Pending Complaints',
+          value: 0, // will be updated via API
+          metricIcon: 'fas fa-clipboard-list'
+        },
         {
           title: 'Fee Defaulters',
           value: 14,
@@ -255,14 +252,14 @@ loadingAnnouncements: true,
           route: '/room-assignment',
           bgColor: '#e8f5e9'
         },
-         {
+        {
           title: 'Change Rooms',
           icon: 'fas fa-exchange-alt',
           description: 'Process room change requests',
           route: '/room-change',
           bgColor: '#e0f2f1'
         },
-         {
+        {
           title: 'Hostel Occupancy',
           icon: 'fas fa-bed',
           description: 'View current hostel occupancy',
@@ -283,7 +280,7 @@ loadingAnnouncements: true,
           route: '/complaint-management',
           bgColor: '#f3e5f5'
         },
-         {
+        {
           title: 'Update Menu',
           icon: 'fas fa-utensils',
           description: 'Update hostel food menu',
@@ -304,7 +301,7 @@ loadingAnnouncements: true,
         //   route: '/student-management',
         //   bgColor: '#f1f8e9'
         // },
-       
+
         // {
         //   title: 'Fee Reports',
         //   icon: 'fas fa-file-invoice',
@@ -312,8 +309,8 @@ loadingAnnouncements: true,
         //   route: '/payment-tracking',
         //   bgColor: '#e8eaf6'
         // },
-       
-       
+
+
         {
           title: 'Rules',
           icon: 'fas fa-clipboard-list',
@@ -340,17 +337,17 @@ loadingAnnouncements: true,
     this.fetchFeeDefaulters();
     this.fetchAnnouncements();
     // Fetch pending complaints count
-  fetch(`${API_URL}/api/v1/complaints/pending-count`)
-    .then(response => response.json())
-    .then(data => {
-      const pendingCard = this.metricList.find(metric => metric.title === 'Pending Complaints');
-      if (pendingCard) {
-        pendingCard.value = data.pendingCount;
-      }
-    })
-    .catch(err => {
-      console.error('Failed to fetch pending complaints count', err);
-    });
+    fetch(`${API_URL}/api/v1/complaints/pending-count`)
+      .then(response => response.json())
+      .then(data => {
+        const pendingCard = this.metricList.find(metric => metric.title === 'Pending Complaints');
+        if (pendingCard) {
+          pendingCard.value = data.pendingCount;
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch pending complaints count', err);
+      });
   },
   methods: {
     async fetchAnnouncements() {
@@ -365,48 +362,48 @@ loadingAnnouncements: true,
       }
     },
     async fetchTotalStudents() {
-  try {
-    const res = await fetch(`${API_URL}/api/v1/students/count`);
-    const data = await res.json();
+      try {
+        const res = await fetch(`${API_URL}/api/v1/students/count`);
+        const data = await res.json();
 
-    const card = this.metricList.find(m => m.title === "Total Students");
-    if (card) card.value = data.count;
-  } catch (err) {
-    console.error("Error fetching students count", err);
-  }
-},
+        const card = this.metricList.find(m => m.title === "Total Students");
+        if (card) card.value = data.count;
+      } catch (err) {
+        console.error("Error fetching students count", err);
+      }
+    },
 
-async fetchVacantRooms() {
-  try {
-    const res = await fetch(`${API_URL}/api/v1/rooms/vacant-count`);
-    const data = await res.json();
+    async fetchVacantRooms() {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/rooms/vacant-count`);
+        const data = await res.json();
 
-    const card = this.metricList.find(m => m.title === "Vacant Rooms");
-    if (card) card.value = data.count;
-  } catch (err) {
-    console.error("Error fetching vacant rooms", err);
-  }
-},
+        const card = this.metricList.find(m => m.title === "Vacant Rooms");
+        if (card) card.value = data.count;
+      } catch (err) {
+        console.error("Error fetching vacant rooms", err);
+      }
+    },
 
-async fetchFeeDefaulters() {
-  try {
-    const res = await fetch(`${API_URL}/api/v1/fees/defaulters-count`);
-    const data = await res.json();
+    async fetchFeeDefaulters() {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/fees/defaulters-count`);
+        const data = await res.json();
 
-    const card = this.metricList.find(m => m.title === "Fee Defaulters");
-    if (card) card.value = data.count;
-  } catch (err) {
-    console.error("Error fetching defaulters", err);
-  }
-},
+        const card = this.metricList.find(m => m.title === "Fee Defaulters");
+        if (card) card.value = data.count;
+      } catch (err) {
+        console.error("Error fetching defaulters", err);
+      }
+    },
 
     formatTime(dateStr) {
       const date = new Date(dateStr);
       const diff = Math.floor((new Date() - date) / 60000);
 
       if (diff < 60) return `${diff} min ago`;
-      if (diff < 1440) return `${Math.floor(diff/60)} hours ago`;
-      return `${Math.floor(diff/1440)} days ago`;
+      if (diff < 1440) return `${Math.floor(diff / 60)} hours ago`;
+      return `${Math.floor(diff / 1440)} days ago`;
     },
     toggleProfileDropdown() {
       this.showDropdown = !this.showDropdown
@@ -458,7 +455,7 @@ async fetchFeeDefaulters() {
   left: 0;
   right: 0;
   z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .header-left {
@@ -515,7 +512,7 @@ async fetchFeeDefaulters() {
   width: 280px;
   height: 100vh;
   overflow-y: auto;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
   animation: slideInRight 0.3s ease-out;
 }
 
@@ -607,7 +604,7 @@ async fetchFeeDefaulters() {
   right: 0;
   background-color: white;
   min-width: 160px;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 1001;
   border-radius: 4px;
   overflow: hidden;
@@ -655,7 +652,7 @@ async fetchFeeDefaulters() {
 .metric-card {
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -700,7 +697,7 @@ async fetchFeeDefaulters() {
 .dashboard-section {
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -782,7 +779,7 @@ async fetchFeeDefaulters() {
 .quick-access-card {
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   text-align: center;
   cursor: pointer;
@@ -796,7 +793,7 @@ async fetchFeeDefaulters() {
 
 .quick-access-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .action-icon {
@@ -828,6 +825,7 @@ async fetchFeeDefaulters() {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -838,12 +836,12 @@ async fetchFeeDefaulters() {
   .dashboard-header {
     padding: 1rem;
   }
-  
+
   .dashboard-content {
     margin-top: 70px;
     padding: 1rem;
   }
-  
+
   .metrics-grid,
   .quick-access-grid {
     grid-template-columns: 1fr 1fr;
@@ -852,23 +850,24 @@ async fetchFeeDefaulters() {
 }
 
 @media (max-width: 480px) {
+
   .metrics-grid,
   .quick-access-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .dashboard-header h1 {
     font-size: 1.3rem;
   }
-  
+
   .profile-btn span {
     display: none;
   }
-  
+
   .profile-btn i.fa-caret-down {
     display: none;
   }
-  
+
   .mobile-menu-content {
     width: 85%;
   }

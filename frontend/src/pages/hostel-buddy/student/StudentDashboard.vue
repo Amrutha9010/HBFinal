@@ -92,7 +92,7 @@
           <div class="metric-content">
             <h3>Room No</h3>
             <p class="metric-value">
-              {{ roomNo && block ? `${block}-${roomNo}` : 'Not Assigned' }}
+              {{ roomNo ? `-${roomNo}` : 'Not Assigned' }}
             </p>
             <p class="metric-change">
               <i class="fas fa-bed"></i> {{ sharingType || 'Not Assigned' }}
@@ -445,13 +445,19 @@ export default {
 
         const student = res.data.data || res.data;
 
-        if (student) {
-          this.roomNo = student.roomNo || '';
+        if (student && student.roomNo) {
+          this.roomNo = student.roomNo;
           this.block = student.block || '';
           this.sharingType = student.sharingType
             ? `${student.sharingType} Sharing`
-            : '';
+            : 'Not Assigned';
           this.acType = student.acType || '';
+        } else {
+          // ✅ IMPORTANT FALLBACK
+          this.roomNo = 'Not Assigned';
+          this.block = '';
+          this.sharingType = 'Not Assigned';
+          this.acType = '';
         }
 
       } catch (err) {

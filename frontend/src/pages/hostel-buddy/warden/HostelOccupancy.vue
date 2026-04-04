@@ -1,3 +1,4 @@
+// HostelOccupancy.vue
 <template>
   <Navbar_warden />
   <div class="hostel-occupancy-page">
