@@ -1,3 +1,4 @@
+// feeStructure.js
 import express from 'express';
 import FeeStructure from '../models/FeeStructure.js';
 

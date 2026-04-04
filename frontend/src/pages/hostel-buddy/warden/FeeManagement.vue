@@ -104,6 +104,7 @@
 import Navbar_warden from '@/components/Navbar_warden.vue';
 import Footer from '../../../components/Footer.vue';
 import axios from 'axios';
+import { API_URL } from "@/config";
 
 export default {
   name: 'FeeManagement',
@@ -129,7 +130,7 @@ export default {
   methods: {
     async saveFeeSettings() {
       try {
-        await axios.post('/api/fee-structure', this.feeData);
+        await axios.post(`${API_URL}/api/fee-structure`, this.feeData);
         this.fetchCurrentFees();
         this.resetForm();
         alert('Fee settings saved successfully!');
@@ -139,7 +140,7 @@ export default {
     },
     async fetchCurrentFees() {
       try {
-        const res = await axios.get('/api/fee-structure');
+        const res = await axios.get(`${API_URL}/api/fee-structure`);
         this.currentFees = res.data;
       } catch (err) {
         console.error('Error fetching fees:', err);
@@ -178,7 +179,7 @@ export default {
     },
     async updateFee() {
       try {
-        await axios.put(`/api/fee-structure/${this.editingId}`, this.feeData);
+        await axios.put(`${API_URL}/api/fee-structure/${this.editingId}`, this.feeData);
         this.fetchCurrentFees();
         this.resetForm();
         alert('Fee structure updated successfully!');
@@ -189,7 +190,7 @@ export default {
     async deleteFee(id) {
       if (!confirm('Are you sure you want to delete this fee structure?')) return;
       try {
-        await axios.delete(`/api/fee-structure/${id}`);
+        await axios.delete(`${API_URL}/api/fee-structure/${id}`);
         this.fetchCurrentFees();
         alert('Fee structure deleted successfully!');
       } catch (err) {

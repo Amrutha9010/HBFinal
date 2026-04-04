@@ -1,9 +1,10 @@
+// FeeStructure.js
 import mongoose from 'mongoose';
 
 const feeStructureSchema = new mongoose.Schema({
   roomType: {
     type: String,
-    enum: ['single', 'double'],
+    enum: ['single', 'double', 'triple', 'four-sharing', 'five-sharing'],
     required: true,
   },
   acType: {

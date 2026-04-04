@@ -1,3 +1,4 @@
+// payment.routes.js
 import express from "express";
 import { createOrder, verifyPayment, getPaymentHistory } from "../controllers/payment.controller.js";
 import Payment from '../models/Payment.model.js';

@@ -87,7 +87,7 @@ export default {
       const res = await axios.get(`${API_URL}/api/fee-structure`);
       this.feeStructures = res.data;
 
-      const student = JSON.parse(localStorage.getItem("student"));
+      const student = JSON.parse(localStorage.getItem("user"));
       this.studentRoomType = student?.roomType || "triple";
       this.studentAcType = student?.acType || "non-ac";
 
