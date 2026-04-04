@@ -2,10 +2,8 @@
 <template>
   <div class="fee-page">
     <Navbar_Student />
-
     <main class="container">
       <div class="content-wrapper">
-
         <!-- Payment Card -->
         <div class="payment-card">
           <div class="card-header">
@@ -19,54 +17,40 @@
               <span class="info-label">Student Name:</span>
               <span class="info-value">{{ student.name }}</span>
             </div>
-
             <div class="info-item">
               <span class="info-label">Student ID:</span>
               <span class="info-value">{{ student.studentId }}</span>
             </div>
-
             <div class="info-item">
               <span class="info-label">Email:</span>
               <span class="info-value">{{ student.email }}</span>
             </div>
-
             <div class="info-item">
               <span class="info-label">Room No:</span>
               <span class="info-value">{{ student.room }}</span>
             </div>
-
             <div class="info-item">
               <span class="info-label">Phone No:</span>
               <span class="info-value">{{ student.phone }}</span>
             </div>
           </div>
+          <div v-else class="student-info">
+            <span>Loading student details...</span>
+          </div>
 
-          <!-- Amount -->
+          <!-- Enter Amount -->
           <div class="amount-section">
             <label class="amount-label">Enter Amount to Pay</label>
-            <input
-              type="number"
-              v-model="payment.amount"
-              class="amount-input"
-            />
+            <input type="number" v-model="payment.amount" placeholder="Enter amount" class="amount-input" />
           </div>
 
           <!-- Pay Button -->
-          <button
-            class="pay-btn"
-            @click="processPayment"
-            :disabled="processingPayment || isPaid"
-          >
-            <span v-if="isPaid">
-              ✅ Fee Already Paid
+          <button class="pay-btn" @click="processPayment" :disabled="processingPayment">
+            <span v-if="!processingPayment">
+              <i class="fas fa-credit-card"></i> Pay ₹{{ payment.amount || 0 }}
             </span>
-
-            <span v-else-if="!processingPayment">
-              💳 Pay ₹{{ payment.amount || 0 }}
-            </span>
-
             <span v-else>
-              ⏳ Processing...
+              <i class="fas fa-spinner fa-spin"></i> Processing...
             </span>
           </button>
         </div>
@@ -74,43 +58,61 @@
         <!-- Payment History -->
         <div class="history-section">
           <div class="section-header">
-            <h2>Payment History</h2>
+            <h2><i class="fas fa-history"></i> Payment History</h2>
           </div>
-
-          <table v-if="paymentHistory.length > 0">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr v-for="(item, index) in paymentHistory" :key="index">
-                <td>{{ new Date(item.createdAt).toLocaleDateString() }}</td>
-                <td>₹{{ item.amount }}</td>
-                <td>{{ item.status }}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <p v-else>No payments yet</p>
+          <div class="history-content">
+            <table class="history-table" v-if="paymentHistory.length > 0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Receipt</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in paymentHistory" :key="index">
+                  <td>{{ new Date(item.createdAt).toLocaleDateString() }}</td>
+                  <td>₹{{ item.amount }}</td>
+                  <td>
+                    <span class="status-badge" :class="item.status">
+                      <i :class="statusIcon(item.status)"></i> {{ item.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <button v-if="item.status === 'success'" @click="downloadReceipt(item)" class="download-btn">
+                      <i class="fas fa-download"></i> Download
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-else class="empty-state">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <p>No payment history yet</p>
+            </div>
+          </div>
         </div>
-
+      </div>
+      <div class="debug-section" v-if="student.studentId === 'N/A'">
+        <button @click="debugAuth" class="debug-btn">Debug Auth State</button>
+        <div v-if="debugInfo" class="debug-info">
+          <pre>{{ debugInfo }}</pre>
+        </div>
       </div>
     </main>
-
     <Footer />
   </div>
 </template>
 
 <script>
-import Navbar_Student from "@/components/Navbar_Student.vue";
 import Footer from "@/components/Footer.vue";
+import Navbar_Student from "../../../../components/Navbar_Student.vue";
+import jsPDF from "jspdf";
 import { API_URL } from "@/config";
 
 export default {
+  name: "FeePayment",
   components: { Navbar_Student, Footer },
 
   data() {
@@ -120,30 +122,40 @@ export default {
         studentId: "",
         email: "",
         room: "",
-        phone: ""
       },
       payment: { amount: null },
       paymentHistory: [],
       processingPayment: false,
-      isPaid: false   // ✅ IMPORTANT
     };
   },
 
   async mounted() {
     await this.loadStudentDetails();
 
-    if (this.student.studentId) {
+    // Only fetch payment history if we have a valid studentId
+    if (this.student.studentId && this.student.studentId !== "N/A") {
       await this.fetchPaymentHistory();
       await this.fetchFeeAmount();
+    } else {
+      console.error("Cannot fetch payment history without valid student ID");
     }
   },
 
   methods: {
-
-    // ✅ Load Student
+    debugAuth() {
+      this.debugInfo = {
+        token: localStorage.getItem('token'),
+        userData: JSON.parse(localStorage.getItem('user')),
+        env: process.env.VUE_APP_API_URL
+      };
+    },
     async loadStudentDetails() {
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          this.$router.push("/login");
+          return;
+        }
 
         const res = await fetch(`${API_URL}/api/v1/students/me`, {
           headers: {
@@ -151,67 +163,55 @@ export default {
           }
         });
 
-        const data = await res.json();
+        const studentData = await res.json();
 
         this.student = {
-          name: data.fullName,
-          studentId: data.fieldId,
-          email: data.email,
-          room: data.roomNo,
-          phone: data.phone
+          name: studentData.fullName || "N/A",
+          studentId: studentData.fieldId || "N/A",
+          email: studentData.email || "N/A",
+          room: studentData.roomNo || "Not Assigned",
+          phone: studentData.phone || "N/A"
         };
 
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Error loading student:", error);
       }
     },
-
-    // ✅ Fetch Fee Amount
     async fetchFeeAmount() {
       try {
         const res = await fetch(
           `${API_URL}/api/v1/payment/student-fee?studentId=${this.student.studentId}`
         );
-
         const data = await res.json();
 
-        this.payment.amount = data.amount;
+        if (data.amount) {
+          this.payment.amount = data.amount;
+        }
 
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch fee amount", err);
       }
     },
-
-    // ✅ Payment History + Paid Logic
     async fetchPaymentHistory() {
       try {
+        if (!this.student.studentId) return;
         const res = await fetch(
           `${API_URL}/api/v1/payment/history?studentId=${this.student.studentId}`
         );
-
         const data = await res.json();
-        this.paymentHistory = data;
-
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
-
-        this.isPaid = data.some(p => {
-          const d = new Date(p.createdAt);
-          return (
-            p.status === "success" &&
-            d.getMonth() === currentMonth &&
-            d.getFullYear() === currentYear
-          );
-        });
-
+        this.paymentHistory = Array.isArray(data) ? data : [];
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load history:", err);
       }
     },
 
-    // ✅ Payment
     async processPayment() {
       try {
+        if (!this.payment.amount || this.payment.amount <= 0) {
+          alert("Please enter a valid amount!");
+          return;
+        }
+
         this.processingPayment = true;
 
         const res = await fetch(
@@ -222,47 +222,96 @@ export default {
             body: JSON.stringify({ amount: this.payment.amount }),
           }
         );
+        const orderData = await res.json();
 
-        const order = await res.json();
+        if (!orderData.success) {
+          alert("Failed to create payment order");
+          this.processingPayment = false;
+          return;
+        }
 
         const options = {
-          key: order.key,
-          amount: order.amount,
-          currency: "INR",
-          order_id: order.order_id,
-
+          key: orderData.key,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          name: "HostelBuddy",
+          description: "Hostel Fee Payment",
+          order_id: orderData.order_id,
           handler: async (response) => {
-            await fetch(`${API_URL}/api/v1/payment/verify-payment`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...response,
-                studentName: this.student.name,
-                studentId: this.student.studentId,
-                email: this.student.email,
-                amount: this.payment.amount,
-              }),
-            });
+            const verifyPayload = {
+              ...response,
+              studentName: this.student.name,
+              studentId: this.student.studentId,
+              email: this.student.email,
+              amount: this.payment.amount,
+            };
 
-            alert("Payment Successful");
+            console.log("Verify Payload:", verifyPayload);
 
-            await this.fetchPaymentHistory(); // refresh
-          }
+            const verifyRes = await fetch(
+              `${API_URL}/api/v1/payment/verify-payment`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(verifyPayload),
+              }
+            );
+
+            const verifyData = await verifyRes.json();
+            console.log("Verify Response:", verifyData);
+
+            if (verifyData.success) {
+              alert("Payment successful!");
+              this.fetchPaymentHistory();
+            } else {
+              alert("Payment verification failed!");
+            }
+          },
+          prefill: {
+            name: this.student.name,
+            email: this.student.email,
+            contact: "9999999999",
+          },
+          theme: { color: "#1BBC9B" },
         };
 
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
         this.processingPayment = false;
-
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Payment Error:", error);
+        alert("Something went wrong");
         this.processingPayment = false;
       }
-    }
-  }
+    },
+
+    statusIcon(status) {
+      return {
+        success: "fas fa-check-circle",
+        failed: "fas fa-times-circle",
+        pending: "fas fa-clock",
+      }[status];
+    },
+
+    downloadReceipt(payment) {
+      const doc = new jsPDF();
+
+      doc.setFont("helvetica", "normal");
+
+      doc.text("Hostel Fee Payment Receipt", 20, 20);
+      doc.text(`Student: ${this.student.name}`, 20, 40);
+      doc.text(`Student ID: ${this.student.studentId}`, 20, 50);
+      doc.text(`Room: ${this.student.room}`, 20, 60);
+      doc.text(`Amount Paid: ₹${payment.amount}`, 20, 80);
+      doc.text(`Payment ID: ${payment.razorpay_payment_id}`, 20, 90);
+      doc.text(`Date: ${new Date(payment.createdAt).toLocaleDateString()}`, 20, 100);
+
+      doc.save(`Receipt_${payment.razorpay_payment_id}.pdf`);
+    },
+  },
 };
 </script>
+
 
 
 
