@@ -128,7 +128,7 @@ export default {
         studentId: "",
         email: "",
         room: "",
-        phone:"",
+        phone: "",
       },
       debugInfo: null,
       payment: { amount: null },
@@ -173,11 +173,12 @@ export default {
         });
 
         const studentData = await res.json();
+        const user = JSON.parse(localStorage.getItem("user"));
 
         this.student = {
           name: studentData.fullName || "N/A",
           studentId: studentData.fieldId || "N/A",
-          email: studentData.email || "N/A",
+          email: user?.email || "N/A",  
           room: studentData.roomNo || "Not Assigned",
           phone: studentData.phone || "N/A"
         };
@@ -389,6 +390,7 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .student-info {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
