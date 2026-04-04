@@ -84,20 +84,43 @@ export default {
 },
 
   async mounted() {
-    try {
-      const res = await axios.get(`${API_URL}/api/fee-structure`);
-      this.feeStructures = res.data;
+  try {
+    // ✅ Get fee structure
+    const res = await axios.get(`${API_URL}/api/fee-structure`);
+    this.feeStructures = res.data;
 
-      const student = JSON.parse(localStorage.getItem("user"));
-      this.studentRoomType = student?.roomType || "triple";
-      this.studentAcType = student?.acType || "non-ac";
+    // ✅ Get student real room details
+    const token = localStorage.getItem("token");
 
-    } catch (error) {
-      console.error("Failed to load fee structures", error);
-    } finally {
-      this.loading = false;
-    }
-  },
+    const profileRes = await axios.get(
+      `${API_URL}/api/v1/students/me`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    const student = profileRes.data;
+
+    const map = {
+      "1": "single",
+      "2": "double",
+      "3": "triple",
+      "4": "four-sharing",
+      "5": "five-sharing"
+    };
+
+    // Dynamic assignment
+    this.studentRoomType = map[student.sharingType] || "";
+    this.studentAcType = student.acType?.toLowerCase() || "";
+
+  } catch (error) {
+    console.error("Failed to load fee structures", error);
+  } finally {
+    this.loading = false;
+  }
+},
 };
 </script>
 
