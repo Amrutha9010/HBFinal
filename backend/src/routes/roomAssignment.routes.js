@@ -1,4 +1,3 @@
-// roomAssignment.routes.js
 import express from "express";
 import RoomApplication from "../models/roomApplicationModel.js";
 import Student from "../models/Student.model.js";
@@ -6,20 +5,17 @@ import Room from "../models/roomModel.js";
 
 const router = express.Router();
 
-//  REMOVE OLD RECORD (if exists)
-await Student.deleteMany({ fieldId: application.rollNumber });
-
 // Get suitable rooms for an application
 router.get("/suitable-rooms/:applicationId", async (req, res) => {
   try {
-    const application = await RoomApplication.findById(
-      req.params.applicationId,
-    );
+    const application = await RoomApplication.findById(req.params.applicationId);
+
     if (!application) {
       return res.status(404).json({ error: "Application not found" });
     }
 
-    const studentSharing = parseInt(application.sharingType); // example: "4"
+    const studentSharing = parseInt(application.sharingType);
+
     const suitableRooms = await Room.find({
       acType: application.acType,
       capacity: studentSharing,
@@ -45,26 +41,53 @@ router.get("/suitable-rooms/:applicationId", async (req, res) => {
   }
 });
 
-// Manual room assignment and student creation
+// ✅ Manual room assignment and student creation
 router.post("/assign", async (req, res) => {
-  const { applicationId, roomNo, block, floor, bedNo } = req.body;
+  const { applicationId, roomNo, block, floor } = req.body;
 
   try {
     const application = await RoomApplication.findById(applicationId);
-    if (!application)
-      return res.status(404).json({ error: "Application not found" });
 
+    if (!application) {
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    // 🔥 STEP 1: Remove old student from rooms (VERY IMPORTANT)
+    const existingStudent = await Student.findOne({
+      fieldId: application.rollNumber,
+    });
+
+    if (existingStudent) {
+      await Room.updateMany(
+        { "occupants.studentId": existingStudent._id },
+        {
+          $pull: {
+            occupants: { studentId: existingStudent._id },
+          },
+        }
+      );
+    }
+
+    // 🔥 STEP 2: Delete old student record
+    await Student.deleteMany({ fieldId: application.rollNumber });
+
+    // 🔥 STEP 3: Find room
     const room = await Room.findOne({
       roomNo,
       block,
       floor: Number(floor),
     });
-    console.log("Incoming:", { roomNo, block, floor });
-    console.log("Converted floor:", Number(floor));
-    if (!room) return res.status(404).json({ error: "Room not found" });
-    console.log("Room found:", room);
-    
-    await Student.deleteMany({ fieldId: application.rollNumber });
+
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // 🔥 STEP 4: Check capacity
+    if (room.occupants.length >= room.capacity) {
+      return res.status(400).json({ error: "Room is full" });
+    }
+
+    // 🔥 STEP 5: Create new student
     const newStudent = new Student({
       fullName: application.fullName,
       rollNumber: application.rollNumber,
@@ -88,26 +111,26 @@ router.post("/assign", async (req, res) => {
 
     const savedStudent = await newStudent.save();
 
-    // Update room occupancy
-    if (room.occupants.length >= room.capacity) {
-      return res.status(400).json({ error: "Room is full" });
-    }
-
+    // 🔥 STEP 6: Add to room occupants (correct format)
     room.occupants.push({
       studentId: savedStudent._id,
       joinDate: new Date(),
     });
+
     await room.save();
 
-    // Delete application
+    // 🔥 STEP 7: Delete application
     await RoomApplication.findByIdAndDelete(applicationId);
 
-    res
-      .status(200)
-      .json({ message: "Room assigned and student created successfully" });
+    res.status(200).json({
+      message: "Room assigned and student created successfully",
+    });
+
   } catch (err) {
-    console.error("Assignment error:", err);
-    res.status(500).json({ error: "Something went wrong during assignment" });
+    console.error("🔥 Assignment error:", err);
+    res.status(500).json({
+      error: err.message || "Something went wrong during assignment",
+    });
   }
 });
 
