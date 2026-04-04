@@ -217,15 +217,12 @@ export default {
   try {
     const user = JSON.parse(localStorage.getItem("user"));
 
-    // 🔥 ADD THIS (FINAL FIX)
-    this.form.email = user.email;
     this.form.rollNumber = user.fieldId;
 
     const formData = new FormData();
 
     formData.append('fullName', this.form.fullName);
     formData.append('rollNumber', this.form.rollNumber);
-    formData.append('email', this.form.email);   // ✅ NOW SAFE
     formData.append('branchYear', this.form.branchYear);
     formData.append('gender', this.form.gender);
     formData.append('phone', this.form.phone);
