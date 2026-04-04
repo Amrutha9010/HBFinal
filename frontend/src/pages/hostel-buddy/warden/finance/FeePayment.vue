@@ -45,15 +45,21 @@
           </div>
 
           <!-- Pay Button -->
-          <button class="pay-btn" @click="processPayment" :disabled="processingPayment">
-            <span v-if="!processingPayment">
-              <i class="fas fa-credit-card"></i> Pay ₹{{ payment.amount || 0 }}
+          <button class="pay-btn" @click="processPayment" :disabled="processingPayment || isPaid">
+            <span v-if="isPaid">
+              Fee Already Paid
             </span>
+
+            <span v-else-if="!processingPayment">
+              Pay ₹{{ payment.amount || 0 }}
+            </span>
+
             <span v-else>
-              <i class="fas fa-spinner fa-spin"></i> Processing...
+              Processing...
             </span>
           </button>
         </div>
+
 
         <!-- Payment History -->
         <div class="history-section">
@@ -122,10 +128,13 @@ export default {
         studentId: "",
         email: "",
         room: "",
+        phone:"",
       },
+      debugInfo: null,
       payment: { amount: null },
       paymentHistory: [],
       processingPayment: false,
+      isPaid: false,
     };
   },
 
@@ -380,7 +389,6 @@ export default {
   display: flex;
   flex-direction: column;
 }
-
 .student-info {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -394,6 +402,8 @@ export default {
   word-break: break-word;
   overflow-wrap: anywhere;
 }
+
+
 
 .container {
   flex: 1;
