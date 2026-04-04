@@ -17,7 +17,7 @@ const studentSchema = new mongoose.Schema({
   studentPhoto: { type: String },
   aadhaar: { type: String },
   collegeId: { type: String },
-
+  email: { type: String, required: true },
   // Room allocation details
   roomNo: { type: String, required: true },
   block: { type: String, required: true },

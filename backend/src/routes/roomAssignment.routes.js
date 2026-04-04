@@ -104,6 +104,7 @@ router.post("/assign", async (req, res) => {
       studentPhoto: application.studentPhoto,
       aadhaar: application.aadhaar,
       collegeId: application.collegeId,
+      email: application.email,
       roomNo,
       block,
       floor,

@@ -13,6 +13,7 @@ const roomApplicationSchema = new mongoose.Schema({
   aadhaar: { type: String }, // URL or number
   collegeId: { type: String }, // URL
   medicalInfo: { type: String },
+  email: { type: String, required: true },
 
   // Preferences
   sharingType: { type: String, enum: ['1', '2', '3', '4', '5'], required: true },
