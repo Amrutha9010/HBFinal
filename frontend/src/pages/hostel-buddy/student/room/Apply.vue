@@ -162,6 +162,7 @@ export default {
       form: {
         fullName: '',
         rollNumber: '',
+        email: '',
         branchYear: '',
         gender: '',
         phone: '',
@@ -180,8 +181,10 @@ export default {
   },
   mounted() {
     const user = JSON.parse(localStorage.getItem("user"));
+    console.log("USER DATA:", user);
     if (user) {
-      this.form.rollNumber = user.fieldId; // ✅ AUTO SET
+      this.form.rollNumber = user.fieldId; 
+      this.form.email = user.email || "";
     }
   },
   methods: {
@@ -208,6 +211,7 @@ export default {
 
         formData.append('fullName', this.form.fullName);
         formData.append('rollNumber', this.form.rollNumber);
+        formData.append('email', this.form.email);
         formData.append('branchYear', this.form.branchYear);
         formData.append('gender', this.form.gender);
         formData.append('phone', this.form.phone);
