@@ -453,7 +453,6 @@ export default {
             : 'Not Assigned';
           this.acType = student.acType || '';
         } else {
-          // ✅ IMPORTANT FALLBACK
           this.roomNo = 'Not Assigned';
           this.block = '';
           this.sharingType = 'Not Assigned';

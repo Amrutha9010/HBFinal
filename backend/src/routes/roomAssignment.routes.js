@@ -60,10 +60,12 @@ router.post("/assign", async (req, res) => {
     console.log("Converted floor:", Number(floor));
     if (!room) return res.status(404).json({ error: "Room not found" });
     console.log("Room found:", room);
+    
+    await Student.deleteMany({ fieldId: application.rollNumber });
     const newStudent = new Student({
       fullName: application.fullName,
       rollNumber: application.rollNumber,
-      fieldId: application.rollNumber, 
+      fieldId: application.rollNumber,
       branchYear: application.branchYear,
       gender: application.gender,
       phone: application.phone,
@@ -88,7 +90,10 @@ router.post("/assign", async (req, res) => {
       return res.status(400).json({ error: "Room is full" });
     }
 
-    room.occupants.push(savedStudent._id);
+    room.occupants.push({
+      studentId: savedStudent._id,
+      joinDate: new Date(),
+    });
     await room.save();
 
     // Delete application
