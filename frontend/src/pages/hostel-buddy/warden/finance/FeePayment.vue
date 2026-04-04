@@ -1,3 +1,4 @@
+// FeePayment.vue
 <template>
   <div class="fee-page">
     <Navbar_Student />
@@ -40,12 +41,7 @@
           <!-- Enter Amount -->
           <div class="amount-section">
             <label class="amount-label">Enter Amount to Pay</label>
-            <input
-              type="number"
-              v-model="payment.amount"
-              placeholder="Enter amount"
-              class="amount-input"
-            />
+            <input type="number" v-model="payment.amount" placeholder="Enter amount" class="amount-input" />
           </div>
 
           <!-- Pay Button -->
@@ -84,11 +80,7 @@
                     </span>
                   </td>
                   <td>
-                    <button
-                      v-if="item.status === 'success'"
-                      @click="downloadReceipt(item)"
-                      class="download-btn"
-                    >
+                    <button v-if="item.status === 'success'" @click="downloadReceipt(item)" class="download-btn">
                       <i class="fas fa-download"></i> Download
                     </button>
                   </td>
@@ -103,11 +95,11 @@
         </div>
       </div>
       <div class="debug-section" v-if="student.studentId === 'N/A'">
-  <button @click="debugAuth" class="debug-btn">Debug Auth State</button>
-  <div v-if="debugInfo" class="debug-info">
-    <pre>{{ debugInfo }}</pre>
-  </div>
-</div>
+        <button @click="debugAuth" class="debug-btn">Debug Auth State</button>
+        <div v-if="debugInfo" class="debug-info">
+          <pre>{{ debugInfo }}</pre>
+        </div>
+      </div>
     </main>
     <Footer />
   </div>
@@ -138,75 +130,90 @@ export default {
   },
 
   async mounted() {
-  await this.loadStudentDetails();
-  
-  // Only fetch payment history if we have a valid studentId
-  if (this.student.studentId && this.student.studentId !== "N/A") {
-    await this.fetchPaymentHistory();
-  } else {
-    console.error("Cannot fetch payment history without valid student ID");
-  }
-},
+    await this.loadStudentDetails();
+
+    // Only fetch payment history if we have a valid studentId
+    if (this.student.studentId && this.student.studentId !== "N/A") {
+      await this.fetchPaymentHistory();
+      await this.fetchFeeAmount();
+    } else {
+      console.error("Cannot fetch payment history without valid student ID");
+    }
+  },
 
   methods: {
     debugAuth() {
-    this.debugInfo = {
-      token: localStorage.getItem('token'),
-      userData: JSON.parse(localStorage.getItem('user')),
-      env: process.env.VUE_APP_API_URL
-    };
-  },
+      this.debugInfo = {
+        token: localStorage.getItem('token'),
+        userData: JSON.parse(localStorage.getItem('user')),
+        env: process.env.VUE_APP_API_URL
+      };
+    },
     async loadStudentDetails() {
-  try {
-    // 1. Get token from localStorage
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error("No token found, redirecting to login");
-      this.$router.push("/login");
-      return;
-    }
+      try {
+        // 1. Get token from localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error("No token found, redirecting to login");
+          this.$router.push("/login");
+          return;
+        }
 
-    // 2. Get user data from localStorage
-    const localUser = JSON.parse(localStorage.getItem('user'));
-    
-    // 3. Make API request to get fresh data
-    const response = await fetch(`${process.env.VUE_APP_API_URL}/api/v1/auth/profile`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+        // 2. Get user data from localStorage
+        const localUser = JSON.parse(localStorage.getItem('user'));
+
+        // 3. Make API request to get fresh data
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/api/v1/auth/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error("Profile request failed");
+
+        const { user } = await response.json();
+
+        // 4. Update component state
+        this.student = {
+          name: user.fullName || localUser?.fullName || "Not Available",
+          studentId: user.fieldId || localUser?.fieldId || "N/A",
+          email: user.email || localUser?.email || "N/A",
+          room: user.room || localUser?.room || "Not Assigned",
+          phone: user.contact || localUser?.contact || "Not Provided"
+        };
+
+        // 5. Update localStorage with fresh data
+        localStorage.setItem('user', JSON.stringify(user));
+
+      } catch (error) {
+        console.error("Error loading profile:", error);
+
+        // Fallback to localStorage data if available
+        const localUser = JSON.parse(localStorage.getItem('user')) || {};
+        this.student = {
+          name: localUser.fullName || "Error loading data",
+          studentId: localUser.fieldId || "N/A",
+          email: localUser.email || "N/A",
+          room: localUser.room || "N/A",
+          phone: localUser.contact || "N/A"
+        };
       }
-    });
+    },
+    async fetchFeeAmount() {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/v1/payment/student-fee?studentId=${this.student.studentId}`
+        );
+        const data = await res.json();
 
-    if (!response.ok) throw new Error("Profile request failed");
+        if (data.amount) {
+          this.payment.amount = data.amount;
+        }
 
-    const { user } = await response.json();
-    
-    // 4. Update component state
-    this.student = {
-      name: user.fullName || localUser?.fullName || "Not Available",
-      studentId: user.fieldId || localUser?.fieldId || "N/A",
-      email: user.email || localUser?.email || "N/A",
-      room: user.room || localUser?.room || "Not Assigned",
-      phone: user.contact || localUser?.contact || "Not Provided"
-    };
-
-    // 5. Update localStorage with fresh data
-    localStorage.setItem('user', JSON.stringify(user));
-
-  } catch (error) {
-    console.error("Error loading profile:", error);
-    
-    // Fallback to localStorage data if available
-    const localUser = JSON.parse(localStorage.getItem('user')) || {};
-    this.student = {
-      name: localUser.fullName || "Error loading data",
-      studentId: localUser.fieldId || "N/A",
-      email: localUser.email || "N/A",
-      room: localUser.room || "N/A",
-      phone: localUser.contact || "N/A"
-    };
-  }
-},
-
+      } catch (err) {
+        console.error("Failed to fetch fee amount", err);
+      }
+    },
     async fetchPaymentHistory() {
       try {
         if (!this.student.studentId) return;
@@ -334,10 +341,12 @@ export default {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
 /* Amount Section Styles */
 .amount-section {
   padding: 0 1.5rem 1.5rem;
 }
+
 .debug-btn {
   background: #ff4757;
   color: white;
@@ -345,12 +354,14 @@ export default {
   border-radius: 4px;
   margin: 10px 0;
 }
+
 .debug-info {
   background: #f1f1f1;
   padding: 10px;
   margin-top: 10px;
   border-radius: 4px;
 }
+
 .amount-label {
   display: block;
   font-size: 0.8125rem;
@@ -404,7 +415,8 @@ export default {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
-  margin-top: 1rem; /* Space for navbar */
+  margin-top: 1rem;
+  /* Space for navbar */
 }
 
 /* Payment Card Styles */
@@ -423,7 +435,8 @@ export default {
 }
 
 .card-header {
-  background: #1BBC9B; /* Tea color */
+  background: #1BBC9B;
+  /* Tea color */
   color: white;
   padding: 1.5rem;
   text-align: center;
@@ -472,7 +485,8 @@ export default {
 }
 
 .highlight .info-value {
-  color: #1BBC9B; /* Tea color */
+  color: #1BBC9B;
+  /* Tea color */
   font-weight: 600;
   font-size: 1.125rem;
 }
@@ -481,7 +495,8 @@ export default {
   width: calc(100% - 3rem);
   margin: 0 1.5rem 1.5rem;
   padding: 1rem;
-  background: #1BBC9B; /* Tea color */
+  background: #1BBC9B;
+  /* Tea color */
   color: white;
   border: none;
   border-radius: 8px;
@@ -498,7 +513,8 @@ export default {
 }
 
 .pay-btn:hover {
-  background: #1BBC9B; /* Darker tea color */
+  background: #1BBC9B;
+  /* Darker tea color */
   box-shadow: 0 4px 12px rgba(27, 188, 155, 0.2);
 }
 
@@ -518,7 +534,8 @@ export default {
 }
 
 .section-header {
-  background: #1BBC9B; /* Tea color */
+  background: #1BBC9B;
+  /* Tea color */
   color: white;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -593,7 +610,8 @@ export default {
   border-radius: 6px;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #5d4037; /* Tea color */
+  color: #5d4037;
+  /* Tea color */
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -604,7 +622,8 @@ export default {
 
 .download-btn:hover {
   background: #e0e0e0;
-  color: #3e2723; /* Darker tea color */
+  color: #3e2723;
+  /* Darker tea color */
 }
 
 .empty-state {
@@ -633,20 +652,20 @@ export default {
   .container {
     padding: 1rem;
   }
-  
+
   .content-wrapper {
     margin-top: 4rem;
   }
-  
+
   .student-info {
     grid-template-columns: 1fr;
   }
-  
+
   .history-table {
     display: block;
     overflow-x: auto;
   }
-  
+
   .pay-btn {
     width: calc(100% - 2rem);
     margin: 0 1rem 1rem;

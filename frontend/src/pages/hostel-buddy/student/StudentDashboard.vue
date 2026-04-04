@@ -1,3 +1,4 @@
+// StudentDashboard.vue
 <template>
   <div class="student-dashboard">
     <!-- Header -->
@@ -92,7 +93,7 @@
           <div class="metric-content">
             <h3>Room No</h3>
             <p class="metric-value">
-              {{ roomNo ? `-${roomNo}` : 'Not Assigned' }}
+              {{ roomNo ? `${roomNo}` : 'Not Assigned' }}
             </p>
             <p class="metric-change">
               <i class="fas fa-bed"></i> {{ sharingType || 'Not Assigned' }}
@@ -391,16 +392,24 @@ export default {
 
     async fetchFeeStatus() {
       try {
-        const token = localStorage.getItem("token");
+        const student = JSON.parse(localStorage.getItem("user"));
 
-        const res = await axios.get(`${API_URL}/api/v1/fees/history`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const res = await axios.get(
+          `${API_URL}/api/v1/payment/history?studentId=${student.fieldId}`
+        );
+
         const payments = res.data;
 
-        if (payments.length > 0) {
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+
+        const paidThisMonth = payments.some(p => {
+          const d = new Date(p.createdAt);
+          return d.getMonth() === currentMonth &&
+            d.getFullYear() === currentYear;
+        });
+
+        if (paidThisMonth) {
           this.feeStatus = "Paid";
           this.nextDue = "Next Month";
         } else {
