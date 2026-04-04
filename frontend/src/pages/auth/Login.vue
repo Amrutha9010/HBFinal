@@ -71,33 +71,45 @@ export default {
     },
 
     async handleLogin() {
-      try {
-        const res = await axios.post(`${API_URL}/api/v1/auth/login`, {
-          email: this.email.trim().toLowerCase(),
-          password: this.password
-        });
+  try {
+    const res = await axios.post(`${API_URL}/api/v1/auth/login`, {
+      email: this.email.trim().toLowerCase(),
+      password: this.password
+    });
 
-        const user = res.data.data.user;
+    console.log("LOGIN RESPONSE:", res.data);
 
-        // Save token & user
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('userProfile', JSON.stringify(user));
-        localStorage.setItem('user', JSON.stringify(user));
+    const user = res.data.data.user;
 
-        // Routing
-        if (user.role === 'student') {
-          this.$router.push('/student-dashboard');
-        } else if (user.role === 'warden') {
-          this.$router.push('/warden-dashboard');
-        } else {
-          alert('Role not recognized');
-        }
+    // ✅ STORE TOKEN
+    localStorage.setItem('token', res.data.token);
 
-      } catch (error) {
-        console.error(error.response?.data || error.message);
-        alert(error.response?.data?.message || "Login failed ❌");
-      }
-    },
+    // 🔥 STORE CLEAN USER (IMPORTANT FIX)
+    localStorage.setItem('user', JSON.stringify({
+      fieldId: user.fieldId,
+      fullName: user.fullName,
+      email: user.email,        // ✅ THIS FIXES YOUR ERROR
+      role: user.role,
+      roomNumber: user.roomNumber
+    }));
+
+    // (optional) keep full profile also
+    localStorage.setItem('userProfile', JSON.stringify(user));
+
+    // ✅ ROUTING
+    if (user.role === 'student') {
+      this.$router.push('/student-dashboard');
+    } else if (user.role === 'warden') {
+      this.$router.push('/warden-dashboard');
+    } else {
+      alert('Role not recognized');
+    }
+
+  } catch (error) {
+    console.error("LOGIN ERROR:", error.response?.data || error.message);
+    alert(error.response?.data?.message || "Login failed ❌");
+  }
+},
     selectRole(role) {
       this.role = role;
     },

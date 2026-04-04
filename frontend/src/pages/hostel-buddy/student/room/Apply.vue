@@ -180,13 +180,22 @@ export default {
     };
   },
   mounted() {
-    const user = JSON.parse(localStorage.getItem("user"));
-    console.log("USER DATA:", user);
-    if (user) {
-      this.form.rollNumber = user.fieldId; 
-      this.form.email = user.email || "";
+  const user = JSON.parse(localStorage.getItem("user"));
+  console.log("USER DATA:", user);
+
+  if (user) {
+    this.form.rollNumber = user.fieldId;
+
+    // ✅ FORCE EMAIL CHECK
+    if (!user.email) {
+      alert("Email not found. Please login again.");
+      this.$router.push("/login");
+      return;
     }
-  },
+
+    this.form.email = user.email;
+  }
+},
   methods: {
     goBack() {
       this.$router.push({ name: 'StudentDashboard' });
@@ -197,66 +206,67 @@ export default {
     },
 
     async submitApplication() {
-      if (!this.form.termsAgreed) {
-        alert('Please agree to the hostel rules and regulations.');
-        return;
+  if (!this.form.termsAgreed) {
+    alert('Please agree to the hostel rules and regulations.');
+    return;
+  }
+
+  if (this.isSubmitting) return;
+  this.isSubmitting = true;
+
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // 🔥 ADD THIS (FINAL FIX)
+    this.form.email = user.email;
+    this.form.rollNumber = user.fieldId;
+
+    const formData = new FormData();
+
+    formData.append('fullName', this.form.fullName);
+    formData.append('rollNumber', this.form.rollNumber);
+    formData.append('email', this.form.email);   // ✅ NOW SAFE
+    formData.append('branchYear', this.form.branchYear);
+    formData.append('gender', this.form.gender);
+    formData.append('phone', this.form.phone);
+    formData.append('parentPhone', this.form.parentPhone);
+    formData.append('address', this.form.address);
+    formData.append('medicalInfo', this.form.medicalInfo);
+    formData.append('sharingType', this.form.sharingType);
+    formData.append('acType', this.form.acType);
+
+    if (this.form.studentPhoto)
+      formData.append('studentPhoto', this.form.studentPhoto);
+
+    if (this.form.aadhaar)
+      formData.append('aadhaar', this.form.aadhaar);
+
+    if (this.form.collegeId)
+      formData.append('collegeId', this.form.collegeId);
+
+    const res = await axios.post(
+      `${API_URL}/api/v1/room-application`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
       }
+    );
 
-      // ✅ prevent multiple clicks
-      if (this.isSubmitting) return;
-      this.isSubmitting = true;
+    alert('Application submitted successfully!');
+    this.$router.push({ name: 'StudentDashboard' });
 
-      try {
-        const formData = new FormData();
+  } catch (error) {
+    console.error('ERROR:', error.response || error);
 
-        formData.append('fullName', this.form.fullName);
-        formData.append('rollNumber', this.form.rollNumber);
-        formData.append('email', this.form.email);
-        formData.append('branchYear', this.form.branchYear);
-        formData.append('gender', this.form.gender);
-        formData.append('phone', this.form.phone);
-        formData.append('parentPhone', this.form.parentPhone);
-        formData.append('address', this.form.address);
-        formData.append('medicalInfo', this.form.medicalInfo);
-        formData.append('sharingType', this.form.sharingType);
-        formData.append('acType', this.form.acType);
-
-        if (this.form.studentPhoto)
-          formData.append('studentPhoto', this.form.studentPhoto);
-
-        if (this.form.aadhaar)
-          formData.append('aadhaar', this.form.aadhaar);
-
-        if (this.form.collegeId)
-          formData.append('collegeId', this.form.collegeId);
-
-        const res = await axios.post(
-          `${API_URL}/api/v1/room-application`,
-          formData,
-          {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          }
-        );
-
-        console.log("RESPONSE:", res.data);
-
-        // ✅ ALWAYS SUCCESS (since backend 201)
-        alert('Application submitted successfully!');
-        this.$router.push({ name: 'StudentDashboard' });
-
-      } catch (error) {
-        console.error('ERROR:', error.response || error);
-
-        // ✅ show backend message (duplicate case)
-        if (error.response) {
-          alert(error.response.data.message || 'Something went wrong');
-        } else {
-          alert('Network error. Please try again.');
-        }
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
+    if (error.response) {
+      alert(error.response.data.message || 'Something went wrong');
+    } else {
+      alert('Network error. Please try again.');
+    }
+  } finally {
+    this.isSubmitting = false;
+  }
+},
   },
 };
 </script>
