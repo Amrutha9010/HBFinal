@@ -85,11 +85,9 @@ export default {
 
   async mounted() {
   try {
-    // ✅ Get fee structure
     const res = await axios.get(`${API_URL}/api/fee-structure`);
     this.feeStructures = res.data;
 
-    // ✅ Get student real room details
     const token = localStorage.getItem("token");
 
     const profileRes = await axios.get(
@@ -103,6 +101,9 @@ export default {
 
     const student = profileRes.data;
 
+    // ✅ FIX 1: Convert to string
+    const sharing = String(student.sharingType);
+
     const map = {
       "1": "single",
       "2": "double",
@@ -111,9 +112,15 @@ export default {
       "5": "five-sharing"
     };
 
-    // Dynamic assignment
-    this.studentRoomType = map[student.sharingType] || "";
-    this.studentAcType = student.acType?.toLowerCase() || "";
+    this.studentRoomType = map[sharing] || "";
+
+    // ✅ FIX 2: normalize AC type
+    this.studentAcType = student.acType
+      ?.toLowerCase()
+      .replace(" ", "-");   // converts "Non AC" → "non-ac"
+
+    console.log("ROOM TYPE:", this.studentRoomType);
+    console.log("AC TYPE:", this.studentAcType);
 
   } catch (error) {
     console.error("Failed to load fee structures", error);
