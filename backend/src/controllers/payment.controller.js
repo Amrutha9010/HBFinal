@@ -11,47 +11,50 @@ const razorpayInstance = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-
-// Get fee for logged-in student
-export const getStudentFee = async (req, res) => {
+router.get('/defaulters-count', async (req, res) => {
   try {
-    const { studentId } = req.query;
+    //  1. Get real students from rooms
+    const rooms = await Room.find();
 
-    const student = await Student.findOne({ fieldId: studentId });
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    let studentIds = [];
 
-    const fee = await FeeStructure.findOne({
-      roomType: mapSharing(student.sharingType),
-      acType: student.acType.toLowerCase(),
+    rooms.forEach(room => {
+      room.occupants.forEach(o => {
+        if (o.studentId) {
+          studentIds.push(o.studentId.toString());
+        }
+      });
     });
 
-    if (!fee) {
-      return res.status(404).json({ message: "Fee structure not found" });
-    }
+    // remove duplicates (important)
+    studentIds = [...new Set(studentIds)];
 
-    res.json({
-      amount: fee.monthlyFee,
-      dueDate: fee.dueDate,
-    });
+    //  2. Get payments
+    const payments = await Payment.find();
+
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    const paidStudents = payments
+      .filter(p => {
+        const d = new Date(p.createdAt);
+        return d.getMonth() === currentMonth &&
+               d.getFullYear() === currentYear;
+      })
+      .map(p => p.studentId);
+
+    // 3. Defaulters = allocated - paid
+    const defaulters = studentIds.filter(
+      id => !paidStudents.includes(id)
+    );
+
+    res.json({ count: defaulters.length });
 
   } catch (err) {
-    res.status(500).json({ message: "Error fetching fee" });
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching defaulters' });
   }
-};
-
-// helper
-function mapSharing(sharing) {
-  const map = {
-    "1": "single",
-    "2": "double",
-    "3": "triple",
-    "4": "four-sharing",
-    "5": "five-sharing"
-  };
-  return map[sharing];
-}
+});
 
 //  Create order
 export const createOrder = async (req, res) => {
@@ -60,7 +63,9 @@ export const createOrder = async (req, res) => {
 
     const { amount } = req.body;
     if (!amount) {
-      return res.status(400).json({ success: false, message: "Amount is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Amount is required" });
     }
 
     const options = {
@@ -101,7 +106,11 @@ export const verifyPayment = async (req, res) => {
 
     //  Debugging missing values
     if (!studentName || !studentId || !email) {
-      console.error("❌ Missing required student fields!", { studentName, studentId, email });
+      console.error(" Missing required student fields!", {
+        studentName,
+        studentId,
+        email,
+      });
     }
 
     //   Razorpay signature verification
@@ -112,7 +121,9 @@ export const verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (expectedSignature !== razorpay_signature) {
-      return res.status(400).json({ success: false, message: "Invalid signature" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid signature" });
     }
 
     //  Save to DB
@@ -133,7 +144,9 @@ export const verifyPayment = async (req, res) => {
     res.json({ success: true, message: "Payment verified & saved" });
   } catch (error) {
     console.error("Payment verification failed", error);
-    res.status(500).json({ success: false, message: "Payment verification failed" });
+    res
+      .status(500)
+      .json({ success: false, message: "Payment verification failed" });
   }
 };
 
@@ -143,13 +156,17 @@ export const getPaymentHistory = async (req, res) => {
     const { studentId } = req.query;
 
     if (!studentId) {
-      return res.status(400).json({ success: false, message: "studentId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "studentId is required" });
     }
 
     const history = await Payment.find({ studentId }).sort({ createdAt: -1 });
     res.json(history);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Failed to fetch history" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch history" });
   }
 };
