@@ -85,7 +85,7 @@ export default {
 
   async mounted() {
     try {
-      const res = await axios.get(`${API_URL}/api/fee-structure`);
+      const res = await axios.get(`${API_URL}/api/v1/fee-structure`);
       this.feeStructures = res.data;
 
       const student = JSON.parse(localStorage.getItem("user"));
