@@ -139,7 +139,7 @@ export default {
           maxLateDays: Number(this.feeData.maxLateDays),
         };
 
-        await axios.post(`${API_URL}/api/v1/fee-structure`, payload);
+        await axios.post(`${API_URL}/api/fee-structure`, payload);
         this.fetchCurrentFees();
         this.resetForm();
         alert('Fee settings saved successfully!');
@@ -149,7 +149,7 @@ export default {
     },
     async fetchCurrentFees() {
       try {
-        const res = await axios.get(`${API_URL}/api/v1/fee-structure`);
+        const res = await axios.get(`${API_URL}/api/fee-structure`);
         this.currentFees = res.data;
       } catch (err) {
         console.error('Error fetching fees:', err);
@@ -196,7 +196,7 @@ export default {
           maxLateDays: Number(this.feeData.maxLateDays),
         };
 
-        await axios.put(`${API_URL}/api/v1/fee-structure/${this.editingId}`, payload); 
+        await axios.put(`${API_URL}/api/fee-structure/${this.editingId}`, payload); 
         this.fetchCurrentFees();
         this.resetForm();
         alert('Fee structure updated successfully!');
@@ -207,7 +207,7 @@ export default {
     async deleteFee(id) {
       if (!confirm('Are you sure you want to delete this fee structure?')) return;
       try {
-        await axios.delete(`${API_URL}/api/v1/fee-structure/${id}`);
+        await axios.delete(`${API_URL}/api/fee-structure/${id}`);
         this.fetchCurrentFees();
         alert('Fee structure deleted successfully!');
       } catch (err) {
