@@ -1,3 +1,4 @@
+// roomAssignment.routes.js
 import express from "express";
 import RoomApplication from "../models/roomApplicationModel.js";
 import Student from "../models/Student.model.js";

@@ -1,4 +1,5 @@
-  import Complaint from '../models/Complaint.model.js';
+// complaint.controller.js
+import Complaint from '../models/Complaint.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import AppError from '../utils/appError.js';
 import { cloudinary } from '../config/cloudinary.js'; // ✅ Correct path

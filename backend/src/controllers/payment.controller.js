@@ -1,3 +1,4 @@
+// payment.controller.js
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import Payment from "../models/Payment.model.js"; // Ensure your Payment model is correct

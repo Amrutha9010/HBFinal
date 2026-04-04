@@ -13,7 +13,7 @@
 
         <div class="form-group">
           <label for="rollNumber">Roll Number:</label>
-          <input type="text" id="rollNumber" v-model="form.rollNumber" required />
+          <input type="text" v-model="form.rollNumber" readonly />
         </div>
       </div>
 
@@ -39,12 +39,14 @@
       <div class="form-row">
         <div class="form-group">
           <label for="studentPhoto">Student Photo:</label>
-          <input type="file" id="studentPhoto" @change="handleFileUpload('studentPhoto', $event)" accept="image/*" required />
+          <input type="file" id="studentPhoto" @change="handleFileUpload('studentPhoto', $event)" accept="image/*"
+            required />
         </div>
 
         <div class="form-group">
           <label for="aadhaar">Aadhaar Card:</label>
-          <input type="file" id="aadhaar" @change="handleFileUpload('aadhaar', $event)" accept="application/pdf,image/*" required />
+          <input type="file" id="aadhaar" @change="handleFileUpload('aadhaar', $event)" accept="application/pdf,image/*"
+            required />
         </div>
       </div>
 
@@ -52,7 +54,8 @@
       <div class="form-row">
         <div class="form-group">
           <label for="collegeId">College ID:</label>
-          <input type="file" id="collegeId" @change="handleFileUpload('collegeId', $event)" accept="application/pdf,image/*" required />
+          <input type="file" id="collegeId" @change="handleFileUpload('collegeId', $event)"
+            accept="application/pdf,image/*" required />
         </div>
 
         <div class="form-group">
@@ -95,25 +98,25 @@
         </div> -->
 
         <div class="form-group">
-        <label for="sharing">Room Sharing Type</label>
-        <select id="sharing" v-model="form.sharingType" required>
-          <option value="">Select</option>
-          <option value="1">1 Sharing</option>
-          <option value="2">2 Sharing</option>
-          <option value="3">3 Sharing</option>
-          <option value="4">4 Sharing</option>
-          <option value="5">5 Sharing</option>
-        </select>
-      </div>
+          <label for="sharing">Room Sharing Type</label>
+          <select id="sharing" v-model="form.sharingType" required>
+            <option value="">Select</option>
+            <option value="1">1 Sharing</option>
+            <option value="2">2 Sharing</option>
+            <option value="3">3 Sharing</option>
+            <option value="4">4 Sharing</option>
+            <option value="5">5 Sharing</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="ac">AC / Non-AC</label>
-        <select id="ac" v-model="form.acType" required>
-          <option value="">Select</option>
-          <option value="AC">AC</option>
-          <option value="Non-AC">Non-AC</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="ac">AC / Non-AC</label>
+          <select id="ac" v-model="form.acType" required>
+            <option value="">Select</option>
+            <option value="AC">AC</option>
+            <option value="Non-AC">Non-AC</option>
+          </select>
+        </div>
 
         <!-- <div class="form-group">
           <label for="specialRequirements">Special Requirements:</label>
@@ -174,6 +177,12 @@ export default {
       },
       isSubmitting: false
     };
+  },
+  mounted() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      this.form.rollNumber = user.fieldId; // ✅ AUTO SET
+    }
   },
   methods: {
     goBack() {

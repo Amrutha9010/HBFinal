@@ -1,4 +1,4 @@
-// backend/src/models/Room.model.js
+// backend/src/models/room.model.js
 
 import mongoose from 'mongoose';
 

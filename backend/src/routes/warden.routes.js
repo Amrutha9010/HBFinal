@@ -1,3 +1,4 @@
+// warden.routes.js
 import express from 'express';
 import * as authController from '../controllers/auth.controller.js';
 import wardenController from '../controllers/warden.controller.js';

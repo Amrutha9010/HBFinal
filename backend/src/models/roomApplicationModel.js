@@ -1,3 +1,4 @@
+// roomApplicationModel.js
 import mongoose from 'mongoose';
 
 const roomApplicationSchema = new mongoose.Schema({

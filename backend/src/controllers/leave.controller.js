@@ -1,4 +1,5 @@
- import asyncHandler from '../utils/asyncHandler.js';
+// leave.controller.js
+import asyncHandler from '../utils/asyncHandler.js';
 import Leave from '../models/Leave.model.js';
 import User from '../models/User.model.js';
 import sendEmail from '../services/email.service.js';

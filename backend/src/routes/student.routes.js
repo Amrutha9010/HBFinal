@@ -1,3 +1,4 @@
+// student.routes.js
 import express from 'express';
 import { protect, restrictTo } from '../controllers/auth.controller.js';
 import Student from '../models/Student.model.js';

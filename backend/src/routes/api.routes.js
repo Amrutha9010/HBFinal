@@ -1,3 +1,4 @@
+// api.routes.js
 import express from 'express';
 import authRouter from './auth.routes.js';
 import studentRouter from './student.routes.js';

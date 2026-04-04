@@ -1,3 +1,4 @@
+// complaint.routes.js
 import express from 'express';
 import Complaint from '../models/Complaint.model.js';
 import upload from '../middleware/uploadImage.js';
