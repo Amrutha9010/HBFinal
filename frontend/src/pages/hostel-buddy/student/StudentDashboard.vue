@@ -232,6 +232,11 @@
             <h3>Meal Feedback</h3>
             <p>Provide feedback on meals</p>
           </div> -->
+          <div class="quick-access-card" @click="navigateTo('/escalate-issue')">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Escalate Issue</h3>
+            <p>Report serious issues to higher authority</p>
+          </div>
 
           <div class="quick-access-card" @click="navigateTo('/fee-details')">
             <i class="fas fa-money-bill-wave"></i>

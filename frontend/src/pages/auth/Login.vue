@@ -6,6 +6,9 @@
         <div class="role-selection">
           <button :class="{ active: role === 'Student' }" @click="selectRole('Student')">Student</button>
           <button :class="{ active: role === 'Warden' }" @click="selectRole('Warden')">Warden</button>
+          <button :class="{ active: role === 'Admin' }" @click="selectRole('Admin')">
+            Admin
+          </button>
         </div>
         <form @submit.prevent="handleLogin">
           <input type="text" placeholder="Email" v-model="email" required />
@@ -38,7 +41,7 @@
 
 <script>
 import ForgotPassword from './ForgotPassword.vue';
-import {API_URL} from "@/config";
+import { API_URL } from "@/config";
 import axios from "axios";
 
 export default {
@@ -57,7 +60,9 @@ export default {
   },
   computed: {
     welcomeTitle() {
-      return this.role === 'Student' ? 'Welcome, Friend!' : 'Welcome, Warden!';
+      if (this.role === 'Student') return 'Welcome, Friend!';
+      if (this.role === 'Warden') return 'Welcome, Warden!';
+      if (this.role === 'Admin') return 'Welcome, Admin!';
     },
     welcomeText() {
       return this.role === 'Student'
@@ -71,45 +76,47 @@ export default {
     },
 
     async handleLogin() {
-  try {
-    const res = await axios.post(`${API_URL}/api/v1/auth/login`, {
-      email: this.email.trim().toLowerCase(),
-      password: this.password
-    });
+      try {
+        const res = await axios.post(`${API_URL}/api/v1/auth/login`, {
+          email: this.email.trim().toLowerCase(),
+          password: this.password
+        });
 
-    console.log("LOGIN RESPONSE:", res.data);
+        console.log("LOGIN RESPONSE:", res.data);
 
-    const user = res.data.data.user;
+        const user = res.data.data.user;
 
-    // ✅ STORE TOKEN
-    localStorage.setItem('token', res.data.token);
+        // ✅ STORE TOKEN
+        localStorage.setItem('token', res.data.token);
 
-    // 🔥 STORE CLEAN USER (IMPORTANT FIX)
-    localStorage.setItem('user', JSON.stringify({
-      fieldId: user.fieldId,
-      fullName: user.fullName,
-      email: user.email,        // ✅ THIS FIXES YOUR ERROR
-      role: user.role,
-      roomNumber: user.roomNumber
-    }));
+        // 🔥 STORE CLEAN USER (IMPORTANT FIX)
+        localStorage.setItem('user', JSON.stringify({
+          fieldId: user.fieldId,
+          fullName: user.fullName,
+          email: user.email,     
+          role: user.role,
+          roomNumber: user.roomNumber
+        }));
 
-    // (optional) keep full profile also
-    localStorage.setItem('userProfile', JSON.stringify(user));
+        // (optional) keep full profile also
+        localStorage.setItem('userProfile', JSON.stringify(user));
 
-    // ✅ ROUTING
-    if (user.role === 'student') {
-      this.$router.push('/student-dashboard');
-    } else if (user.role === 'warden') {
-      this.$router.push('/warden-dashboard');
-    } else {
-      alert('Role not recognized');
-    }
+        //  ROUTING
+        if (user.role === 'student') {
+          this.$router.push('/student-dashboard');
+        } else if (user.role === 'warden') {
+          this.$router.push('/warden-dashboard');
+        } else if (user.role === 'admin') {
+          this.$router.push('/admin-dashboard'); 
+        } else {
+          alert('Role not recognized');
+        }
 
-  } catch (error) {
-    console.error("LOGIN ERROR:", error.response?.data || error.message);
-    alert(error.response?.data?.message || "Login failed ❌");
-  }
-},
+      } catch (error) {
+        console.error("LOGIN ERROR:", error.response?.data || error.message);
+        alert(error.response?.data?.message || "Login failed ");
+      }
+    },
     selectRole(role) {
       this.role = role;
     },
@@ -311,6 +318,7 @@ input:focus {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

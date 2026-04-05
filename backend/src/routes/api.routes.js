@@ -10,9 +10,11 @@ import roomRoutes from './roomRoutes.js';
 import roomAssignmentRoutes from './roomAssignment.routes.js';
 import roomApplicationRoutes from './roomApplicationRoutes.js';
 import paymentRoutes from './payment.routes.js';
+import escalationRoutes from "./escalation.routes.js";
 
 const router = express.Router();
 
+router.use("/api/v1/escalations", escalationRoutes);
 router.use('/api/v1/auth', authRouter);
 router.use('/api/v1/students', studentRouter);
 router.use('/api/v1/wardens', wardenRouter);
