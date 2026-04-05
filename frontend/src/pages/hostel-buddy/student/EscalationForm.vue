@@ -1,6 +1,6 @@
 <template>
   <div class="escalation-page">
-    <Navbar_student />
+    <Navbar_Student />
     <div class="main-content">
       <div class="container">
         <div class="page-header">
@@ -85,14 +85,14 @@
 
 <script>
 import axios from 'axios';
-import Navbar_student from '@/components/Navbar_student.vue';
+import Navbar_Student from '@/components/Navbar_Student.vue';
 import Footer from '@/components/Footer.vue';
 import { API_URL } from '@/config';
 
 export default {
   name: 'EscalationForm',
   components: {
-    Navbar_student,
+    Navbar_Student,
     Footer
   },
   data() {
