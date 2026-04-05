@@ -1,15 +1,10 @@
 <template>
-  <Navbar_warden/>
- <div class="student-management">
+  <Navbar_warden />
+  <div class="student-management">
     <h1 class="title">Student Management</h1>
 
     <div class="controls">
-      <input
-        type="text"
-        v-model="searchQuery"
-        placeholder="Search by name, roll, room..."
-        class="search-box"
-      />
+      <input type="text" v-model="searchQuery" placeholder="Search by name, roll, room..." class="search-box" />
       <select v-model="filterStatus">
         <option value="">All Statuses</option>
         <option value="Active">Active</option>
@@ -28,7 +23,7 @@
           <th>Course</th>
           <th>Room</th>
           <th>Status</th>
-         
+
         </tr>
       </thead>
       <tbody>
@@ -36,15 +31,13 @@
           <td>
             <div class="student-info">
               <!-- <img :src="`https://ui-avatars.com/api/?name=${student.name}&background=4CAF50&color=fff&rounded=true&size=50`" :alt="student.name"  /> -->
-               <img 
-                  :src="`https://ui-avatars.com/api/?name=${student.name}&background=1BBC9B&color=fff&rounded=true&size=50`" 
-                  :alt="student.name" 
-                  class="student-avatar"
-                />
+              <img
+                :src="`https://ui-avatars.com/api/?name=${student.name}&background=1BBC9B&color=fff&rounded=true&size=50`"
+                :alt="student.name" class="student-avatar" />
               <div>
                 <div>{{ student.name }}</div>
                 <small>{{ student.roll }}</small>
-                
+
               </div>
             </div>
           </td>
@@ -55,7 +48,7 @@
               {{ student.status }}
             </span>
           </td>
-          
+
         </tr>
       </tbody>
     </table>
@@ -98,16 +91,19 @@
       </div>
     </div>
   </div>
-  <Footer/>
+  <Footer />
 </template>
 <script>
 import Navbar_warden from '@/components/Navbar_warden.vue';
 import Footer from '../../../components/Footer.vue';
+import axios from "axios";
+import { API_URL } from "@/config";
 
 export default {
-   components:{
-    Navbar_warden,Footer
-  },data() {
+  components: {
+    Navbar_warden,
+    Footer
+  }, data() {
     return {
       searchQuery: '',
       filterStatus: '',
@@ -124,68 +120,7 @@ export default {
         email: '',
         warden: '',
       },
-      students: [
-        {
-          name: 'Alice Johnson',
-          roll: 'S2024001',
-          gender: 'Female',
-          course: 'Computer Science',
-          year: 'Year 3',
-          room: 'A-101',
-          warden: 'Mr. Smith',
-          status: 'Active',
-        },
-        {
-          name: 'Bob Williams',
-          roll: 'S2024002',
-          gender: 'Male',
-          course: 'Mathematics',
-          year: 'Year 4',
-          room: 'A-102',
-          warden: 'Mr. Smith',
-          status: 'Active',
-        },
-        {
-          name: 'Charlie Brown',
-          roll: 'S2024003',
-          gender: 'Male',
-          course: 'Physics',
-          year: 'Year 2',
-          room: 'B-201',
-          warden: 'Mrs. Jones',
-          status: 'Inactive',
-        },
-        {
-          name: 'Diana Prince',
-          roll: 'S2024004',
-          gender: 'Female',
-          course: 'History',
-          year: 'Year 3',
-          room: 'B-202',
-          warden: 'Mrs. Jones',
-          status: 'On Leave',
-        },
-        {
-          name: 'Ethan Hunt',
-          roll: 'S2024005',
-          gender: 'Male',
-          course: 'Chemistry',
-          year: 'Year 1',
-          room: 'C-101',
-          warden: 'Mr. Davis',
-          status: 'Pending',
-        },
-        {
-          name: 'Fiona Glenanne',
-          roll: 'S2024006',
-          gender: 'Female',
-          course: 'Literature',
-          year: 'Year 2',
-          room: 'C-301',
-          warden: 'Mr. Davis',
-          status: 'Mess Off',
-        },
-      ],
+      students: [],
     };
   },
   computed: {
@@ -197,17 +132,41 @@ export default {
         (s) =>
           (!this.filterStatus || s.status === this.filterStatus) &&
           (s.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          s.roll.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          s.room.toLowerCase().includes(this.searchQuery.toLowerCase()))
+            s.roll.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            s.room.toLowerCase().includes(this.searchQuery.toLowerCase()))
       );
     },
   },
+  mounted() {
+    this.fetchStudents();
+  },
   methods: {
+    async fetchStudents() {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(`${API_URL}/api/v1/students`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      this.students = res.data.data.map(s => ({
+        name: s.fullName,
+        roll: s.rollNumber || s.fieldId,
+        course: s.branchYear || "N/A",
+        year: "",
+        room: s.roomNo || "Not Assigned",
+        warden: "",
+        status: "Active"
+      }));
+
+    } catch (err) {
+      console.error("Error fetching students:", err);
+    }
+  },
     getAvatarUrl(student, index) {
-     
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=4CAF50&color=fff&rounded=true&size=50`;
-      
-      
     },
     openAddModal() {
       this.showAddModal = true;
@@ -225,9 +184,9 @@ export default {
       };
     },
     addStudent() {
-      const newStudent = { 
+      const newStudent = {
         ...this.form,
-        
+
         avatar: this.getAvatarUrl(this.form, this.students.length)
       };
       this.students.push(newStudent);
@@ -236,7 +195,7 @@ export default {
   },
 };
 </script>
-  
+
 
 <style scoped>
 .student-management {
@@ -258,7 +217,7 @@ export default {
   margin-bottom: 25px;
   font-size: 2.2rem;
   font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .controls {
@@ -270,7 +229,7 @@ export default {
   background-color: white;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-box {
@@ -292,10 +251,10 @@ select {
   padding: 10px 15px;
   border-radius: 6px;
   border: 1px solid #1BBC9B;
-  background-color:#1BBC9B;
+  background-color: #1BBC9B;
   font-size: 14px;
   cursor: pointer;
-  color:white;
+  color: white;
 }
 
 .btn {
@@ -307,7 +266,7 @@ select {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .btn:hover {
@@ -321,7 +280,7 @@ select {
   background-color: white;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .student-table th {
@@ -356,8 +315,8 @@ select {
   height: 45px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid  #1BBC9B;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border: 2px solid #1BBC9B;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   background-color: #1BBC9B;
 }
 
@@ -453,7 +412,8 @@ select {
   margin: 20px 0;
 }
 
-input, select {
+input,
+select {
   padding: 12px;
   border-radius: 6px;
   border: 1px solid #e0e0e0;
@@ -461,7 +421,8 @@ input, select {
   transition: all 0.3s;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   border-color: #1BBC9B;
   outline: none;
   box-shadow: 0 0 0 2px #1BBC9B

@@ -5,6 +5,7 @@ import { protect, restrictTo } from "../middleware/auth.js";
 import Student from "../models/Student.model.js";
 import User from "../models/User.model.js";
 import Room from "../models/roomModel.js";
+import { getAllStudents } from "../controllers/student.controller.js";
 
 const router = express.Router();
 
@@ -27,7 +28,9 @@ router.get("/count", async (req, res) => {
 
 // Protect routes below
 router.use(protect);
-router.use(restrictTo("student"));
+
+// Then define roles per route
+router.get("/", restrictTo("warden", "admin"), getAllStudents);
 
 // Get authenticated student's allocation details
 router.get("/me", async (req, res) => {

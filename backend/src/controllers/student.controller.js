@@ -1,4 +1,6 @@
 // src/controllers/student.controller.js
+import Student from "../models/Student.model.js";
+
 export const getStudentDashboard = async (req, res) => {
   try {
     // Your dashboard logic here
@@ -16,8 +18,24 @@ export const getStudentDashboard = async (req, res) => {
   }
 };
 
+export const getAllStudents = async (req, res) => {
+  try {
+    const students = await Student.find().sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students
+    });
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    res.status(500).json({ message: "Failed to fetch students" });
+  }
+};
+
 // Make sure to export all your controller functions
 export default {
-  getStudentDashboard
+  getStudentDashboard,
+  getAllStudents
   // Add other functions here as needed
 };

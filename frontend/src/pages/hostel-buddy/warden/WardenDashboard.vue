@@ -80,10 +80,10 @@
           </div> -->
 
 
-          <!-- <div class="mobile-menu-item" @click="navigateTo('/student-management')">
+          <div class="mobile-menu-item" @click="navigateTo('/student-management')">
             <i class="fas fa-user-graduate"></i>
             <span>Student Details</span>
-          </div> -->
+          </div>
 
           <div class="mobile-menu-item" @click="navigateTo('/rules')">
             <i class="fas fa-clipboard-list"></i>
@@ -294,13 +294,13 @@ export default {
           route: '/fee-management',
           bgColor: '#e0f7fa'
         },
-        // {
-        //   title: 'Student Details',
-        //   icon: 'fas fa-user-graduate',
-        //   description: 'View and manage student records',
-        //   route: '/student-management',
-        //   bgColor: '#f1f8e9'
-        // },
+        {
+          title: 'Student Details',
+          icon: 'fas fa-user-graduate',
+          description: 'View and manage student records',
+          route: '/student-management',
+          bgColor: '#f1f8e9'
+        },
 
         // {
         //   title: 'Fee Reports',
