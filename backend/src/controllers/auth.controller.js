@@ -8,20 +8,32 @@ import crypto from 'crypto';
 import asyncHandler from '../utils/asyncHandler.js';
 import Student from '../models/Student.model.js';
 
-// ---------------- CREATE ADMIN (Temporary) ---------------- //
+// ---------------- CREATE OR RESET ADMIN (Temporary) ---------------- //
 export const createAdmin = async (req, res, next) => {
   try {
-    // Check if admin already exists
+    const password = '12345678';
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const existingAdmin = await User.findOne({ email: 'principal@gmail.com' });
     if (existingAdmin) {
-      return next(new AppError('Admin user already exists', 400));
+      existingAdmin.password = hashedPassword;
+      existingAdmin.fullName = 'Principal';
+      existingAdmin.fieldId = 'ADMIN001';
+      existingAdmin.contact = '1234567890';
+      existingAdmin.role = 'admin';
+      existingAdmin.isVerified = true;
+      await existingAdmin.save();
+
+      existingAdmin.password = undefined;
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Admin user password reset to 12345678',
+        data: { user: existingAdmin }
+      });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash('12345678', salt);
-
-    // Create admin user
     const adminUser = await User.create({
       fullName: 'Principal',
       email: 'principal@gmail.com',
