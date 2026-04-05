@@ -66,7 +66,7 @@ const signToken = (id) => {
 // ---------------- CREATE OR RESET WARDEN (Temporary) ---------------- //
 export const createDefaultWarden = async (req, res, next) => {
   try {
-    const password = '123456';
+    const password = '12345678';
 
     const existingWarden = await User.findOne({ email: 'chappaamrutha@gmail.com' });
 
@@ -84,7 +84,7 @@ export const createDefaultWarden = async (req, res, next) => {
 
       return res.status(200).json({
         status: 'success',
-        message: 'Warden password reset to 123456',
+        message: 'Warden password reset to 12345678',
         data: { user: existingWarden }
       });
     }
