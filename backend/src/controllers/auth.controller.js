@@ -1,11 +1,49 @@
 // auth.controller.js
 import User from '../models/User.model.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import AppError from '../utils/appError.js';
 import sendEmail from '../utils/sendEmail.js';
 import crypto from 'crypto';
 import asyncHandler from '../utils/asyncHandler.js';
 import Student from '../models/Student.model.js';
+
+// ---------------- CREATE ADMIN (Temporary) ---------------- //
+export const createAdmin = async (req, res, next) => {
+  try {
+    // Check if admin already exists
+    const existingAdmin = await User.findOne({ email: 'principal@gmail.com' });
+    if (existingAdmin) {
+      return next(new AppError('Admin user already exists', 400));
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash('12345678', salt);
+
+    // Create admin user
+    const adminUser = await User.create({
+      fullName: 'Principal',
+      email: 'principal@gmail.com',
+      password: hashedPassword,
+      fieldId: 'ADMIN001',
+      contact: '1234567890',
+      role: 'admin',
+      isVerified: true
+    });
+
+    adminUser.password = undefined;
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Admin user created successfully',
+      data: { user: adminUser }
+    });
+
+  } catch (err) {
+    next(new AppError('Failed to create admin user', 500));
+  }
+};
 
 // JWT token helper
 const signToken = (id) => {
