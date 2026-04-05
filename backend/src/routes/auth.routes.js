@@ -8,7 +8,8 @@ import {
   sendOtp,
   verifyOtp,
   resetPassword,
-  createAdmin
+  createAdmin,
+  createDefaultWarden
 } from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.js'; 
 
@@ -18,7 +19,8 @@ router.get('/profile', protect, getProfile);
 // Public Routes
 router.post('/register', register);
 router.post('/login', login);
-router.post('/create-admin', createAdmin); // Temporary route
+router.post('/create-admin', createAdmin); 
+router.post('/create-warden-default', createDefaultWarden);
 router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
 router.post('/reset-password', resetPassword);

@@ -63,6 +63,55 @@ const signToken = (id) => {
   });
 };
 
+// ---------------- CREATE OR RESET WARDEN (Temporary) ---------------- //
+export const createDefaultWarden = async (req, res, next) => {
+  try {
+    const password = '123456';
+
+    const existingWarden = await User.findOne({ email: 'chappaamrutha@gmail.com' });
+
+    if (existingWarden) {
+      existingWarden.password = password;
+      existingWarden.fullName = 'Amrutha Warden';
+      existingWarden.fieldId = 'W001';
+      existingWarden.contact = '9010777738';
+      existingWarden.role = 'warden';
+      existingWarden.isVerified = true;
+
+      await existingWarden.save();
+
+      existingWarden.password = undefined;
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Warden password reset to 123456',
+        data: { user: existingWarden }
+      });
+    }
+
+    const wardenUser = await User.create({
+      fullName: 'Amrutha Warden',
+      email: 'chappaamrutha@gmail.com',
+      password,
+      fieldId: 'W001',
+      contact: '9010777738',
+      role: 'warden',
+      isVerified: true
+    });
+
+    wardenUser.password = undefined;
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Warden created successfully',
+      data: { user: wardenUser }
+    });
+
+  } catch (err) {
+    next(new AppError('Failed to create warden user', 500));
+  }
+};
+
 // ---------------- REGISTER ---------------- //
 export const register = async (req, res, next) => {
   try {
