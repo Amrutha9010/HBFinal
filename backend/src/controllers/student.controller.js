@@ -1,8 +1,7 @@
 // src/controllers/student.controller.js
 import Student from "../models/Student.model.js";
 import User from "../models/User.model.js";
-import Payment from "../models/Payment.model.js"; 
-import RoomApplication from "../models/roomApplicationModel.js";
+import PaymentStatus from "../models/PaymentStatus.js";
 
 export const getStudentDashboard = async (req, res) => {
   try {
@@ -28,40 +27,43 @@ export const getAllStudents = async (req, res) => {
     const fullData = await Promise.all(
       students.map(async (s) => {
 
+        // 🔹 Get email from User
         const user = await User.findOne({ fieldId: s.fieldId });
 
-        const application = await RoomApplication.findOne({
-          rollNumber: s.rollNumber
-        });
-
-        const payment = await Payment.findOne({
+        // 🔹 Get payment status (CORRECT MODEL)
+        const paymentStatus = await PaymentStatus.findOne({
           studentId: s.fieldId
         });
 
         return {
           _id: s._id,
+
+          // ✅ BASIC
           fullName: s.fullName,
           rollNumber: s.rollNumber,
           roomNo: s.roomNo,
 
-          // ✅ CONTACT
+          // ✅ DIRECT FROM STUDENT (NO MORE ROOMAPPLICATION)
+          phone: s.phone || "N/A",
+          address: s.address || "N/A",
+          studentPhoto: s.studentPhoto || "",
+          aadhaar: s.aadhaar || "",
+          collegeId: s.collegeId || "",
+
+          // ✅ USER
           email: user?.email || "N/A",
-          phone: application?.phone || user?.contact || "N/A",
-          address: application?.address || "N/A",
 
-          // ✅ IMAGES
-          studentPhoto: application?.studentPhoto || "",
-          aadhaar: application?.aadhaar || "",
-          collegeId: application?.collegeId || "",
-
-          // ✅ PAYMENT
-          paid: payment?.status === "Paid",
-          balance: payment?.remainingAmount || 0
+          // ✅ PAYMENT (FIXED)
+          paid: paymentStatus?.hasPaid || false,
+          balance: paymentStatus?.hasPaid ? 0 : (paymentStatus?.amountPaid || 0)
         };
       })
     );
 
-    res.json({ success: true, data: fullData });
+    res.json({
+      success: true,
+      data: fullData
+    });
 
   } catch (err) {
     console.error(err);
