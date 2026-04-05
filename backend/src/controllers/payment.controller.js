@@ -4,6 +4,7 @@ import crypto from "crypto";
 import Payment from "../models/Payment.model.js"; // Ensure your Payment model is correct
 import Student from "../models/Student.model.js";
 import FeeStructure from "../models/FeeStructure.js";
+import PaymentStatus from "../models/PaymentStatus.js";
 
 //  Razorpay instance
 const razorpayInstance = new Razorpay({
@@ -131,7 +132,16 @@ export const verifyPayment = async (req, res) => {
     });
 
     await payment.save();
-
+// 🔥 UPDATE PAYMENT STATUS (ADD THIS)
+await PaymentStatus.findOneAndUpdate(
+  { studentId: studentId }, // fieldId
+  {
+    hasPaid: true,
+    amountPaid: amount,
+    paymentDate: new Date()
+  },
+  { upsert: true }
+);
     console.log(" Payment saved successfully!");
     res.json({ success: true, message: "Payment verified & saved" });
   } catch (error) {
@@ -162,3 +172,5 @@ export const getPaymentHistory = async (req, res) => {
       .json({ success: false, message: "Failed to fetch history" });
   }
 };
+
+
