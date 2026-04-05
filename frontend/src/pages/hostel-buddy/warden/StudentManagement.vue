@@ -1,98 +1,79 @@
 <template>
   <Navbar_warden />
+
   <div class="student-management">
     <h1 class="title">Student Management</h1>
 
+    <!-- 🔍 Search -->
     <div class="controls">
-      <input type="text" v-model="searchQuery" placeholder="Search by name, roll, room..." class="search-box" />
-      <select v-model="filterStatus">
-        <option value="">All Statuses</option>
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-        <option value="On Leave">On Leave</option>
-        <option value="Mess Off">Mess Off</option>
-        <option value="Pending">Pending</option>
-      </select>
-      <button class="btn" @click="openAddModal">+ Add Student</button>
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="Search by name, email, room..."
+        class="search-box"
+      />
     </div>
 
+    <!-- 📊 TABLE -->
     <table class="student-table">
       <thead>
         <tr>
-          <th>Student</th>
-          <th>Course</th>
+          <th>Photo</th>
+          <th>Name</th>
+          <th>Roll</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
           <th>Room</th>
-          <th>Status</th>
-
+          <th>Payment</th>
+          <th>Balance</th>
+          <th>Action</th>
         </tr>
       </thead>
-      <tbody>
-        <tr v-for="student in filteredStudents" :key="student.roll">
-          <td>
-            <div class="student-info">
-              <!-- <img :src="`https://ui-avatars.com/api/?name=${student.name}&background=4CAF50&color=fff&rounded=true&size=50`" :alt="student.name"  /> -->
-              <img
-                :src="`https://ui-avatars.com/api/?name=${student.name}&background=1BBC9B&color=fff&rounded=true&size=50`"
-                :alt="student.name" class="student-avatar" />
-              <div>
-                <div>{{ student.name }}</div>
-                <small>{{ student.roll }}</small>
 
-              </div>
-            </div>
-          </td>
-          <td>{{ student.course }}<br /><small>{{ student.year }}</small></td>
-          <td>{{ student.room }}<br /><small>{{ student.warden }}</small></td>
+      <tbody>
+        <tr v-for="student in filteredStudents" :key="student._id">
+
+          <!-- 📸 Photo -->
           <td>
-            <span :class="['status', student.status.toLowerCase().replace(' ', '-')]">
-              {{ student.status }}
+            <img
+              :src="student.studentPhoto || defaultAvatar"
+              class="student-avatar"
+            />
+          </td>
+
+          <!-- 👤 Details -->
+          <td>{{ student.fullName }}</td>
+          <td>{{ student.rollNumber }}</td>
+          <td>{{ student.email }}</td>
+          <td>{{ student.phone }}</td>
+          <td class="address">{{ student.address }}</td>
+          <td>{{ student.roomNo }}</td>
+
+          <!-- 💰 Payment -->
+          <td>
+            <span :class="student.paid ? 'paid' : 'not-paid'">
+              {{ student.paid ? "Paid" : "Not Paid" }}
             </span>
+          </td>
+
+          <td>₹{{ student.balance }}</td>
+
+          <!-- ❌ Remove -->
+          <td>
+            <button class="delete-btn" @click="deleteStudent(student._id)">
+              Remove
+            </button>
           </td>
 
         </tr>
       </tbody>
     </table>
-
-    <div v-if="showAddModal" class="modal">
-      <div class="modal-box">
-        <h2>Add New Student</h2>
-        <form @submit.prevent="addStudent">
-          <div class="form-columns">
-            <input v-model="form.name" required placeholder="Full Name" />
-            <input v-model="form.roll" required placeholder="Roll Number" />
-            <select v-model="form.gender">
-              <option>Male</option>
-              <option>Female</option>
-            </select>
-            <input v-model="form.course" required placeholder="Course" />
-            <select v-model="form.year">
-              <option>Year 1</option>
-              <option>Year 2</option>
-              <option>Year 3</option>
-              <option>Year 4</option>
-            </select>
-            <input v-model="form.room" required placeholder="Room Number" />
-            <select v-model="form.status">
-              <option>Active</option>
-              <option>Inactive</option>
-              <option>On Leave</option>
-              <option>Mess Off</option>
-              <option>Pending</option>
-            </select>
-            <input v-model="form.phone" placeholder="Phone" />
-            <input v-model="form.email" placeholder="Email" />
-            <input v-model="form.warden" placeholder="Assign Warden (Optional)" />
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" @click="showAddModal = false">Cancel</button>
-            <button type="submit" class="submit-btn">Create Student</button>
-          </div>
-        </form>
-      </div>
-    </div>
   </div>
+
   <Footer />
 </template>
+
 <script>
 import Navbar_warden from '@/components/Navbar_warden.vue';
 import Footer from '../../../components/Footer.vue';
@@ -103,96 +84,75 @@ export default {
   components: {
     Navbar_warden,
     Footer
-  }, data() {
+  },
+
+  data() {
     return {
-      searchQuery: '',
-      filterStatus: '',
-      showAddModal: false,
-      form: {
-        name: '',
-        roll: '',
-        gender: 'Male',
-        course: '',
-        year: 'Year 1',
-        room: '',
-        status: 'Active',
-        phone: '',
-        email: '',
-        warden: '',
-      },
+      searchQuery: "",
       students: [],
+      defaultAvatar: "https://via.placeholder.com/50"
     };
   },
+
   computed: {
     filteredStudents() {
-      return this.students.map((student, index) => ({
-        ...student,
-        avatar: this.getAvatarUrl(student, index)
-      })).filter(
-        (s) =>
-          (!this.filterStatus || s.status === this.filterStatus) &&
-          (s.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-            s.roll.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-            s.room.toLowerCase().includes(this.searchQuery.toLowerCase()))
+      return this.students.filter((s) =>
+        s.fullName?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        s.email?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        (s.roomNo || "").toLowerCase().includes(this.searchQuery.toLowerCase())
       );
-    },
+    }
   },
+
   mounted() {
     this.fetchStudents();
   },
+
   methods: {
+
+    // ✅ FETCH STUDENTS
     async fetchStudents() {
-    try {
-      const token = localStorage.getItem("token");
+      try {
+        const token = localStorage.getItem("token");
 
-      const res = await axios.get(`${API_URL}/api/v1/students`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+        const res = await axios.get(`${API_URL}/api/v1/students`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-      this.students = res.data.data.map(s => ({
-        name: s.fullName,
-        roll: s.rollNumber || s.fieldId,
-        course: s.branchYear || "N/A",
-        year: "",
-        room: s.roomNo || "Not Assigned",
-        warden: "",
-        status: "Active"
-      }));
+        // ✅ Directly use backend data (no remapping needed)
+        this.students = res.data.data;
 
-    } catch (err) {
-      console.error("Error fetching students:", err);
+      } catch (err) {
+        console.error("Error fetching students:", err);
+      }
+    },
+
+    // ❌ REMOVE STUDENT
+    async deleteStudent(id) {
+      if (!confirm("Are you sure you want to remove this student?")) return;
+
+      try {
+        const token = localStorage.getItem("token");
+
+        await axios.delete(`${API_URL}/api/v1/students/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        // refresh list
+        this.fetchStudents();
+        alert("Student removed successfully");
+
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("Failed to delete student");
+      }
     }
-  },
-    getAvatarUrl(student, index) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=4CAF50&color=fff&rounded=true&size=50`;
-    },
-    openAddModal() {
-      this.showAddModal = true;
-      this.form = {
-        name: '',
-        roll: '',
-        gender: 'Male',
-        course: '',
-        year: 'Year 1',
-        room: '',
-        status: 'Active',
-        phone: '',
-        email: '',
-        warden: '',
-      };
-    },
-    addStudent() {
-      const newStudent = {
-        ...this.form,
 
-        avatar: this.getAvatarUrl(this.form, this.students.length)
-      };
-      this.students.push(newStudent);
-      this.showAddModal = false;
-    },
-  },
+  }
 };
 </script>
 
@@ -464,5 +424,36 @@ select:focus {
 .submit-btn:hover {
   background-color: #1BBC9B;
   transform: translateY(-1px);
+}
+
+.student-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.address {
+  max-width: 200px;
+  font-size: 12px;
+}
+
+.paid {
+  color: green;
+  font-weight: bold;
+}
+
+.not-paid {
+  color: red;
+  font-weight: bold;
+}
+
+.delete-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>

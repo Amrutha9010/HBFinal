@@ -1,5 +1,8 @@
 // src/controllers/student.controller.js
 import Student from "../models/Student.model.js";
+import User from "../models/User.model.js";
+import Payment from "../models/Payment.model.js"; 
+import RoomApplication from "../models/roomApplicationModel.js";
 
 export const getStudentDashboard = async (req, res) => {
   try {
@@ -20,16 +23,49 @@ export const getStudentDashboard = async (req, res) => {
 
 export const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().sort({ createdAt: -1 });
+    const students = await Student.find();
 
-    res.status(200).json({
-      success: true,
-      count: students.length,
-      data: students
-    });
-  } catch (error) {
-    console.error("Error fetching students:", error);
-    res.status(500).json({ message: "Failed to fetch students" });
+    const fullData = await Promise.all(
+      students.map(async (s) => {
+
+        const user = await User.findOne({ fieldId: s.fieldId });
+
+        const application = await RoomApplication.findOne({
+          rollNumber: s.rollNumber
+        });
+
+        const payment = await Payment.findOne({
+          studentId: s.fieldId
+        });
+
+        return {
+          _id: s._id,
+          fullName: s.fullName,
+          rollNumber: s.rollNumber,
+          roomNo: s.roomNo,
+
+          // ✅ CONTACT
+          email: user?.email || "N/A",
+          phone: application?.phone || user?.contact || "N/A",
+          address: application?.address || "N/A",
+
+          // ✅ IMAGES
+          studentPhoto: application?.studentPhoto || "",
+          aadhaar: application?.aadhaar || "",
+          collegeId: application?.collegeId || "",
+
+          // ✅ PAYMENT
+          paid: payment?.status === "Paid",
+          balance: payment?.remainingAmount || 0
+        };
+      })
+    );
+
+    res.json({ success: true, data: fullData });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching students" });
   }
 };
 

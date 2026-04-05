@@ -32,6 +32,16 @@ router.use(protect);
 // Then define roles per route
 router.get("/", restrictTo("warden", "admin"), getAllStudents);
 
+router.delete("/:id", restrictTo("warden", "admin"), async (req, res) => {
+  try {
+    await Student.findByIdAndDelete(req.params.id);
+
+    res.json({ success: true, message: "Student removed" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete student" });
+  }
+});
+
 // Get authenticated student's allocation details
 router.get("/me", async (req, res) => {
   try {
