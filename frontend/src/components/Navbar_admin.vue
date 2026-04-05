@@ -8,9 +8,9 @@
       </router-link>
 
       <!-- Theme Toggle -->
-      <button @click="toggleTheme" class="theme-toggle">
+      <!-- <button @click="toggleTheme" class="theme-toggle">
         {{ isDarkTheme ? '☀' : '🌙' }}
-      </button>
+      </button> -->
 
       <!-- Navigation Menu -->
       <ul class="nav-menu" :class="{'active': isOpen}">

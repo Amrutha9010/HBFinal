@@ -187,14 +187,14 @@ export default {
         {
           title: 'Total Students',
           value: 248,
-          change: '+12 this month',
+          change: '',
           icon: 'fas fa-user-plus',
           metricIcon: 'fas fa-users'
         },
         {
           title: 'Vacant Rooms',
           value: 15,
-          change: '89% occupancy',
+          change: '',
           icon: 'fas fa-bed',
           metricIcon: 'fas fa-home'
         },
@@ -206,7 +206,7 @@ export default {
         {
           title: 'Fee Defaulters',
           value: 14,
-          change: '₹175000 pending',
+          change: '',
           icon: 'fas fa-rupee-sign',
           metricIcon: 'fas fa-money-bill-wave'
         }
