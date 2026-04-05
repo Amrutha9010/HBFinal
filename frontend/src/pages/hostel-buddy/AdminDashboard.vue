@@ -202,14 +202,14 @@
 
 <script>
 import axios from 'axios';
-// import Navbar_admin from '@/components/Navbar_admin.vue';
+import Navbar_admin from '@/components/Navbar_admin.vue';
 import Footer from '@/components/Footer.vue';
 import { API_URL } from '@/config';
 
 export default {
     name: 'AdminEscalationDashboard',
     components: {
-        // Navbar_admin,
+        Navbar_admin,
         Footer
     },
     data() {
