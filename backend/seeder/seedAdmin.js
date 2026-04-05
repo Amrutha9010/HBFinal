@@ -17,15 +17,10 @@ const seedAdmin = async () => {
       return;
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash('12345678', salt);
-
-    // Create admin
     const admin = await User.create({
       fullName: 'Principal',
       email: 'principal@gmail.com',
-      password: hashedPassword,
+      password: '12345678',
       fieldId: 'ADMIN001',
       contact: '1234567890',
       role: 'admin',

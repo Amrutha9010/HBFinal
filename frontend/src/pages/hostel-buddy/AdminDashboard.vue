@@ -209,7 +209,7 @@ import { API_URL } from '@/config';
 export default {
     name: 'AdminEscalationDashboard',
     components: {
-        Navbar_admin,
+        // Navbar_admin,
         Footer
     },
     data() {

@@ -3,9 +3,10 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import User from '../src/models/User.model.js';
-
-dotenv.config();
-
+dotenv.config({
+  path: path.resolve('../.env')
+});
+console.log("ENV:", process.env.MONGODB_URI);
 const seedWarden = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);

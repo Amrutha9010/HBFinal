@@ -12,12 +12,10 @@ import Student from '../models/Student.model.js';
 export const createAdmin = async (req, res, next) => {
   try {
     const password = '12345678';
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(password, salt);
 
     const existingAdmin = await User.findOne({ email: 'principal@gmail.com' });
     if (existingAdmin) {
-      existingAdmin.password = hashedPassword;
+      existingAdmin.password = password;
       existingAdmin.fullName = 'Principal';
       existingAdmin.fieldId = 'ADMIN001';
       existingAdmin.contact = '1234567890';
@@ -37,7 +35,7 @@ export const createAdmin = async (req, res, next) => {
     const adminUser = await User.create({
       fullName: 'Principal',
       email: 'principal@gmail.com',
-      password: hashedPassword,
+      password,
       fieldId: 'ADMIN001',
       contact: '1234567890',
       role: 'admin',
